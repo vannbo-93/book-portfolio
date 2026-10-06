@@ -1,3 +1,9 @@
 /** @format */
 
 @import "tailwindcss";
+
+@import "tailwindcss";
+
+body {
+  background: var(--color-neutral-50);
+}

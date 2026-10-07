@@ -1,130 +1,171 @@
 /** @format */
-import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router";
+import { useState } from "react";
+import { Link, useLocation } from "react-router";
+import {
+  AnimatePresence,
+  MotionConfig,
+  motion,
+  type Transition,
+} from "motion/react";
 
-const LINKS = [
-  { to: "/", label: "Work" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
+// شريط واحد داكن شبه شفاف بحواف مستديرة قليلًا، في منتصف الشاشة:
+// الاسم يسارًا، والروابط وزر الدخول يمينًا (بأسلوب صفحات React Bits)
+
+type NavItem = { href: string; label: string };
+
+const LINKS: NavItem[] = [
+  { href: "/", label: "Work" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
+const LOGIN: NavItem = { href: "/login", label: "Login" };
 
-// طبقة الزجاج: شفافية خفيفة + تضبيب خفيف تظهر النقاط من خلاله + حد فاتح + لمعة داخلية في الأعلى + ظل
-// مستعملة في الـ navbar وقائمة الهاتف معًا، فيبقى شكلهما واحدًا
-const GLASS =
-  "border border-white/10 bg-white/[0.03] backdrop-blur-[3px] " +
-  "shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_32px_rgba(0,0,0,0.4)]";
-
-// في أعلى الصفحة: شفاف تمامًا. الحد يبقى موجودًا بلون شفاف حتى لا يتحرك المحتوى عند التبديل
-const TRANSPARENT = "border border-transparent bg-transparent";
-
-const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-full px-3 py-1.5 text-sm transition-colors ${
-    isActive ? "bg-white/10 text-white" : "text-neutral-300 hover:text-white"
-  }`;
+const EASE: Transition["ease"] = [0.22, 1, 0.36, 1];
 
 const Navbar = () => {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
   const close = () => setOpen(false);
 
-  // يظهر الزجاج بمجرد أن يبدأ الزائر بالتمرير
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  // Work يبقى نشطًا في صفحات الكتب أيضًا، لأنها جزء من الأعمال
+  const isActive = (href: string) =>
+    href === "/"
+      ? pathname === "/" || pathname.startsWith("/books")
+      : pathname.startsWith(href);
 
   return (
-    <header className="fixed inset-x-0 top-4 z-50 px-4">
-      {/* على الشاشة الكبيرة: ثلاثة أعمدة 1fr | auto | 1fr، فتبقى الروابط في المنتصف تمامًا
-          مهما اختلف عرض الاسم وزر الدخول */}
-      <nav
-        aria-label="Main"
-        className={`mx-auto flex h-14 max-w-5xl items-center justify-between rounded-full px-5 transition-all duration-300 sm:px-6 md:grid md:grid-cols-[1fr_auto_1fr] ${
-          scrolled || open ? GLASS : TRANSPARENT
-        }`}>
-        <Link
-          to="/"
-          onClick={close}
-          className="justify-self-start text-base font-semibold tracking-tight text-white">
-          Designer Name
-        </Link>
+    // reducedMotion="user": من فعّل تقليل الحركة في نظامه لا يرى حركات التحريك
+    <MotionConfig reducedMotion="user">
+      <header className="fixed inset-x-0 top-4 z-50 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="mx-auto max-w-[640px] overflow-hidden rounded-xl border border-white/10 bg-[#16131c]/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
+          <nav
+            aria-label="Main"
+            className="flex h-12 items-center justify-between pl-4 pr-2">
+            <Link
+              to="/"
+              onClick={close}
+              className="rounded-md text-sm font-medium tracking-tight text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+              Designer Name
+            </Link>
 
-        <ul className="hidden items-center gap-2 md:flex">
-          {LINKS.map((l) => (
-            <li key={l.to}>
-              <NavLink to={l.to} end className={linkClass}>
-                {l.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+            <div className="hidden items-center gap-2 md:flex">
+              {/* خلفية الـ hover تنزلق بين الروابط بدل أن تختفي وتظهر (layoutId) */}
+              <ul
+                className="flex items-center"
+                onMouseLeave={() => setHovered(null)}>
+                {LINKS.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <li key={item.href} className="relative">
+                      <AnimatePresence>
+                        {hovered === item.href && (
+                          <motion.span
+                            layoutId="nav-hover"
+                            aria-hidden="true"
+                            className="absolute inset-0 rounded-md bg-white/[0.07]"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 40,
+                            }}
+                          />
+                        )}
+                      </AnimatePresence>
+                      <Link
+                        to={item.href}
+                        aria-current={active ? "page" : undefined}
+                        onMouseEnter={() => setHovered(item.href)}
+                        onFocus={() => setHovered(item.href)}
+                        onBlur={() => setHovered(null)}
+                        className={`relative block rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-white ${
+                          active
+                            ? "text-white"
+                            : "text-neutral-400 hover:text-white"
+                        }`}>
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
 
-        <div className="flex items-center justify-self-end">
-          <Link
-            to="/login"
-            className="hidden rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-white transition-colors hover:bg-white hover:text-[#120f17] md:inline-block">
-            Login
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
-            className="-mr-2 p-2 text-white md:hidden">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round">
-              {open ? (
-                <path d="M6 6l12 12M18 6L6 18" />
-              ) : (
-                <path d="M4 8h16M4 16h16" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </nav>
-
-      {open && (
-        <div
-          id="mobile-menu"
-          className={`mx-auto mt-2 max-w-5xl rounded-2xl p-3 md:hidden ${GLASS}`}>
-          <ul className="flex flex-col gap-1">
-            {LINKS.map((l) => (
-              <li key={l.to}>
-                <NavLink
-                  to={l.to}
-                  end
-                  onClick={close}
-                  className={({ isActive }) =>
-                    `block rounded-xl px-3 py-2 text-base ${
-                      isActive ? "bg-white/10 text-white" : "text-neutral-300"
-                    }`
-                  }>
-                  {l.label}
-                </NavLink>
-              </li>
-            ))}
-            <li className="px-3 pt-2">
               <Link
-                to="/login"
-                onClick={close}
-                className="inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-white">
-                Login
+                to={LOGIN.href}
+                aria-current={isActive(LOGIN.href) ? "page" : undefined}
+                className="rounded-lg bg-white px-4 py-1.5 text-sm font-semibold text-[#120f17] transition-colors hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                {LOGIN.label}
               </Link>
-            </li>
-          </ul>
-        </div>
-      )}
-    </header>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              className="flex h-9 w-9 flex-col items-center justify-center gap-1 rounded-lg text-white md:hidden">
+              <motion.span
+                animate={{ rotate: open ? 45 : 0, y: open ? 3 : 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="h-0.5 w-4 rounded bg-white"
+              />
+              <motion.span
+                animate={{ rotate: open ? -45 : 0, y: open ? -3 : 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="h-0.5 w-4 rounded bg-white"
+              />
+            </button>
+          </nav>
+
+          {/* على الهاتف: القائمة تنفتح داخل نفس الشريط، فيطول بدل أن تظهر بطاقة منفصلة */}
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.div
+                id="mobile-menu"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="md:hidden">
+                <ul className="flex flex-col gap-1 border-t border-white/10 p-2">
+                  {LINKS.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        to={item.href}
+                        onClick={close}
+                        aria-current={isActive(item.href) ? "page" : undefined}
+                        className={`block rounded-md px-3 py-2 text-sm transition-colors ${
+                          isActive(item.href)
+                            ? "bg-white/[0.07] text-white"
+                            : "text-neutral-400 hover:text-white"
+                        }`}>
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                  <li className="pt-1">
+                    <Link
+                      to={LOGIN.href}
+                      onClick={close}
+                      className="block rounded-lg bg-white px-3 py-2 text-center text-sm font-semibold text-[#120f17]">
+                      {LOGIN.label}
+                    </Link>
+                  </li>
+                </ul>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </header>
+    </MotionConfig>
   );
 };
 

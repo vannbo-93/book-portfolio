@@ -23,8 +23,8 @@ const BookCover = ({ book, priority = false }: BookCoverProps) => (
       className="h-auto w-full rounded-sm bg-neutral-200 shadow-md"
     />
     <div className="mt-3 flex items-baseline justify-between gap-2">
-      <h2 className="text-sm font-medium text-neutral-900">{book.title}</h2>
-      <span className="text-xs text-neutral-500">{book.year}</span>
+      <h2 className="text-sm font-medium text-neutral-100">{book.title}</h2>
+      <span className="text-xs text-neutral-400">{book.year}</span>
     </div>
   </Link>
 );

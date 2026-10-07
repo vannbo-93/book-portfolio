@@ -2,8 +2,6 @@
 
 @import "tailwindcss";
 
-@import "tailwindcss";
-
 body {
-  background: var(--color-neutral-50);
+  background: #120f17;
 }

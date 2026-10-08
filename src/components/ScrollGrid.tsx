@@ -46,8 +46,13 @@ const HERO_END = endAt(0.8);
 const LAYER_END = [endAt(1), endAt(0.95), endAt(0.9)];
 
 // المنحنيات كما في الأصل (مقابلاتها في GSAP بين قوسين)
-const EASE_WIDTH = cubicBezier(0.65, 0, 0.35, 1); // power2.inOut
-const EASE_HEIGHT = cubicBezier(0.42, 0, 0.58, 1); // power1.inOut
+// منحنى واحد للعرض والارتفاع معًا، فتبقى نسبة الغلاف 2:3 ثابتة طوال التصغير
+const EASE_HERO = cubicBezier(0.65, 0, 0.35, 1); // power2.inOut
+
+// الغلاف في البداية: أكبر غلاف بنسبة 2:3 يتسع في الشاشة تحت الـ navbar
+const COVER_RATIO = 2 / 3; // العرض ÷ الارتفاع
+const NAV_SPACE = 100; // المسافة المحجوزة أعلى الشاشة للـ navbar (px)
+const SIDE_SPACE = 32; // أقل هامش جانبي على الشاشات الضيقة (px)
 const EASE_FADE = cubicBezier(0.61, 1, 0.88, 1); // sine.out
 const EASE_SCALE = [
   cubicBezier(0.42, 0, 0.58, 1), // الطبقة 1: power1.inOut
@@ -81,7 +86,7 @@ const CENTER_POS: [string, number][] = [
   ["calc(3 + var(--offset))", -1],
 ];
 
-const IMG = "block aspect-[4/5] w-full rounded-2xl object-cover bg-neutral-200";
+const IMG = "block aspect-[2/3] w-full rounded-2xl object-cover bg-neutral-200";
 
 const Layer = ({
   images,
@@ -147,7 +152,7 @@ const ScrollGrid = ({
     offset: ["start start", "end end"],
   });
 
-  // ---- الصورة الوسطى: العرض والارتفاع بالبكسل، من مقاس الشاشة إلى مقاس الخانة ----
+  // ---- الصورة الوسطى: غلاف كبير بنسبة 2:3 يصغر إلى مقاس الخانة ----
   const size = useRef({ vw: 0, vh: 0, w: 0, h: 0 });
   const heroW = useMotionValue<number | string>("100%");
   const heroH = useMotionValue<number | string>("100%");
@@ -155,9 +160,20 @@ const ScrollGrid = ({
   const updateHero = useCallback(() => {
     const { vw, vh, w, h } = size.current;
     if (!w || !h) return;
-    const t = Math.min(1, Math.max(0, scrollYProgress.get() / HERO_END));
-    heroW.set(vw + (w - vw) * EASE_WIDTH(t));
-    heroH.set(vh + (h - vh) * EASE_HEIGHT(t));
+    const t = EASE_HERO(
+      Math.min(1, Math.max(0, scrollYProgress.get() / HERO_END)),
+    );
+    // مقاس البداية: مركز الخانة أسفل منتصف الشاشة بـ 2.5rem (40px)، فالمساحة المتاحة
+    // فوقه حتى الـ navbar = vh/2 + 40 − NAV_SPACE، ونفسها تحته حتى أسفل الشاشة
+    let startH = vh - 2 * (NAV_SPACE - 40);
+    let startW = startH * COVER_RATIO;
+    // على الشاشات الضيقة (الهاتف) يحدّه العرض لا الارتفاع
+    if (startW > vw - SIDE_SPACE) {
+      startW = vw - SIDE_SPACE;
+      startH = startW / COVER_RATIO;
+    }
+    heroW.set(startW + (w - startW) * t);
+    heroH.set(startH + (h - startH) * t);
   }, [scrollYProgress, heroW, heroH]);
   useMotionValueEvent(scrollYProgress, "change", updateHero);
 
@@ -194,10 +210,10 @@ const ScrollGrid = ({
         {/* الشبكة كاملة داخل الشاشة في نهاية المشهد:
             العرض هو الأصغر بين: عرض حدود الموقع (SITE في App)، والعرض الذي يجعل الصفوف الثلاثة
             تتسع في ارتفاع الشاشة ناقص مساحة الـ navbar (9rem).
-            حساب الارتفاع: الصورة 4:5، فارتفاع الشبكة = 0.75 × العرض − الفاصل (5 أعمدة)
-                                                    = 1.25 × العرض − 0.5 × الفاصل (3 أعمدة على الهاتف)
+            حساب الارتفاع: الصورة 2:3 (نسبة غلاف الكتاب)، فارتفاع الشبكة = 0.9 × العرض − 1.6 × الفاصل (5 أعمدة)
+                                                    = 1.5 × العرض − الفاصل (3 أعمدة على الهاتف)
             وتُوضع في منتصف المساحة تحت الـ navbar (top: 50% + 2.5rem) */}
-        <div className="absolute left-1/2 top-[calc(50%_+_2.5rem)] grid w-[min(100%,calc((100svh_-_9rem_+_var(--gap))/0.75))] -translate-x-1/2 -translate-y-1/2 grid-cols-5 grid-rows-[repeat(3,auto)] content-center gap-[var(--gap)] [--gap:clamp(10px,2vw,32px)] [--offset:0] max-[600px]:w-[min(100%,calc((100svh_-_9rem_+_var(--gap)*0.5)/1.25))] max-[600px]:grid-cols-3 max-[600px]:[--offset:-1]">
+        <div className="absolute left-1/2 top-[calc(50%_+_2.5rem)] grid w-[min(100%,calc((100svh_-_9rem_+_var(--gap)*1.6)/0.9))] -translate-x-1/2 -translate-y-1/2 grid-cols-5 grid-rows-[repeat(3,auto)] content-center gap-[var(--gap)] [--gap:clamp(10px,2vw,32px)] [--offset:0] max-[600px]:w-[min(100%,calc((100svh_-_9rem_+_var(--gap))/1.5))] max-[600px]:grid-cols-3 max-[600px]:[--offset:-1]">
           {/* الطبقة الخارجية تختفي على الشاشات الصغيرة */}
           <Layer
             images={outer}

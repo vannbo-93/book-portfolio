@@ -86,7 +86,7 @@ const Card = ({
       ref={wrapperRef}
       className="sticky top-0 flex h-screen items-center justify-center">
       <motion.article
-        className="relative h-[68vh] w-full max-w-4xl origin-top overflow-hidden rounded-3xl bg-neutral-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)]"
+        className="relative aspect-[2/3] w-[min(100%,calc(68vh*2/3))] origin-top overflow-hidden rounded-3xl bg-neutral-200 shadow-[0_-12px_40px_rgba(0,0,0,0.12)]"
         style={{
           // كل بطاقة أسفل التي قبلها بـ PEEK_PX، مع رفع الجميع قليلًا فتبقى المجموعة في الوسط
           top: `calc(-4vh + ${index * PEEK_PX}px)`,

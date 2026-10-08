@@ -1,31 +1,26 @@
 /** @format */
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useLocation } from "react-router";
 import { SITE } from "../layout";
+import StatusDot from "./StatusDot";
+import {
+  AVAILABILITY,
+  BRAND,
+  CONTACT_URL,
+  EMAIL,
+  NAV_LINKS as LINKS,
+} from "../data/site";
 
 // ثلاثة أجزاء مستقلة على عرض الصفحة:
-//   يسار: USSAIN كنص فقط، بلا إطار
-//   وسط:  الروابط داخل الكبسولة الزجاجية ("Pill Highlight Navigation Bar" من CodeFronts)
-//   يمين: زر Download CV وحده، بلا إطار حوله
-// على الهاتف: الاسم يسارًا وزر القائمة يمينًا، والروابط والزر داخل القائمة
+//   يسار: USSAIN، وبجانبه حالة التوفر (هل يقبل مشاريع جديدة الآن)
+//   وسط:  ما يبحث عنه العميل: الأعمال، الخدمات، طريقة العمل، من هو
+//   يمين: زر "Start a project" يأخذ العميل مباشرة إلى صفحة التواصل
+// على الهاتف: الاسم يسارًا وزر القائمة يمينًا، وداخل القائمة الروابط والبريد والزر
 
-type NavItem = { href: string; label: string };
-
-const LINKS: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/services", label: "Services" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/contact", label: "Contact" },
-];
-
-// ملف السيرة الذاتية: ضعه في مجلد public باسم cv.pdf
-const CV_URL = "/cv.pdf";
-const CV_FILENAME = "Ussain-CV.pdf";
-
-// لون الاسم وأيقونة قائمة الهاتف. اخترت أنت #000 للاسم، أي أن الصفحة فاتحة،
-// فأيقونة القائمة بنفس اللون حتى لا تختفي. إن جعلت الصفحة داكنة، غيّره إلى #f9fafb
+// لون الاسم وأيقونة قائمة الهاتف: أسود فوق الصفحة الفاتحة،
+// وفاتح فوق الأقسام الداكنة (التي عليها data-nav="dark") حتى لا يختفي
 const BRAND_TEXT = "#000";
+const BRAND_TEXT_ON_DARK = "#f9fafb";
 
 // ألوان الملف الأصلي
 //   paper #f9fafb: النص الفاتح      mut #9ca3af: الروابط غير النشطة
@@ -37,26 +32,25 @@ const LINK =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 // الزر بألوانك كما هي، وتأثير الـ hover: يصغر قليلًا عند المرور عليه
-const CV_BUTTON =
+const CTA_BUTTON =
   "items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#9ca3af,#0a0a0f)] text-sm font-semibold text-white " +
   "shadow-[0_2px_8px_rgba(99,102,241,0.45)] transition-transform duration-150 hover:scale-[0.97] " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0a0a0f] " +
   "motion-reduce:transition-none motion-reduce:hover:scale-100";
 
-// أيقونة مستخدم بسيطة (رأس وكتفان)، تأخذ لون النص
-const UserIcon = () => (
+// سهم مائل (↗)، يأخذ لون النص
+const ArrowIcon = () => (
   <svg
     aria-hidden="true"
-    width="16"
-    height="16"
+    width="14"
+    height="14"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="2.25"
     strokeLinecap="round"
     strokeLinejoin="round">
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    <path d="M7 17 17 7M8 7h9v9" />
   </svg>
 );
 
@@ -64,6 +58,29 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+
+  // هل تحت الناف بار الآن قسم داكن؟ نفحص النقطة التي يقع فيها الاسم عند كل تمرير
+  const [onDark, setOnDark] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const under = document.elementsFromPoint(8, 42);
+      setOnDark(under.some((el) => el.closest('[data-nav="dark"]')));
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(check);
+    };
+    check();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [pathname]);
+  const brandColor = onDark ? BRAND_TEXT_ON_DARK : BRAND_TEXT;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -78,14 +95,23 @@ const Navbar = () => {
       <nav
         aria-label="Main"
         className={`${SITE} relative flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]`}>
-        {/* يسار: الاسم فقط */}
-        <Link
-          to="/"
-          onClick={close}
-          style={{ color: BRAND_TEXT }}
-          className="pointer-events-auto justify-self-start rounded-md text-[15px] font-bold tracking-[-0.02em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">
-          USSAIN
-        </Link>
+        {/* يسار: الاسم، وحالة التوفر بجانبه على الشاشات الكبيرة */}
+        <div className="flex items-center gap-4 justify-self-start">
+          <Link
+            to="/"
+            onClick={close}
+            style={{ color: brandColor }}
+            className="pointer-events-auto rounded-md text-[15px] transition-colors duration-300 font-bold tracking-[-0.02em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">
+            {BRAND}
+          </Link>
+          <p
+            className={`hidden items-center gap-2 text-xs font-medium transition-colors duration-300 lg:flex ${
+              onDark ? "text-neutral-400" : "text-neutral-500"
+            }`}>
+            <StatusDot />
+            {AVAILABILITY}
+          </p>
+        </div>
 
         {/* وسط: الروابط داخل الكبسولة الزجاجية */}
         <ul className="pointer-events-auto hidden list-none items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md md:flex">
@@ -101,16 +127,14 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* يمين: الزر وحده */}
+        {/* يمين: زر بدء مشروع */}
         <div className="flex items-center justify-self-end">
-          {/* <a download> لا <Link>: الملف يُحمَّل ولا يُعامَل كصفحة داخل الموقع */}
-          <a
-            href={CV_URL}
-            download={CV_FILENAME}
-            className={`${CV_BUTTON} pointer-events-auto hidden px-4 py-2 md:inline-flex`}>
-            <UserIcon />
-            Download CV
-          </a>
+          <Link
+            to={CONTACT_URL}
+            className={`${CTA_BUTTON} pointer-events-auto hidden px-4 py-2 md:inline-flex`}>
+            Start a project
+            <ArrowIcon />
+          </Link>
 
           {/* زر قائمة الهاتف: ثلاثة خطوط تتحول إلى X */}
           <button
@@ -119,7 +143,7 @@ const Navbar = () => {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            style={{ "--brand": BRAND_TEXT } as CSSProperties}
+            style={{ "--brand": brandColor } as CSSProperties}
             className="pointer-events-auto flex size-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-full focus-visible:outline-2 focus-visible:outline-current md:hidden">
             <span
               className={`block h-px w-5 rounded-sm bg-[var(--brand)] transition-transform duration-300 motion-reduce:transition-none ${
@@ -139,7 +163,8 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* قائمة الهاتف: تُغلق عند الضغط على أي رابط، وفيها زر السيرة الذاتية أيضًا */}
+        {/* قائمة الهاتف: تُغلق عند الضغط على أي رابط.
+            فيها كل ما يحتاجه العميل: الروابط، حالة التوفر، البريد، وزر بدء مشروع */}
         {open && (
           <div
             id="mobile-menu"
@@ -154,14 +179,25 @@ const Navbar = () => {
                 {item.label}
               </Link>
             ))}
+            <div className="mx-4 my-2 h-px bg-white/10" />
+            <p className="flex items-center gap-2 px-4 py-1 text-xs font-medium text-[#9ca3af]">
+              <StatusDot />
+              {AVAILABILITY}
+            </p>
+            {/* البريد: الضغط عليه يفتح تطبيق البريد في الهاتف مباشرة */}
             <a
-              href={CV_URL}
-              download={CV_FILENAME}
+              href={`mailto:${EMAIL}`}
               onClick={close}
-              className={`${CV_BUTTON} mt-1 flex min-h-11`}>
-              <UserIcon />
-              Download CV
+              className="flex min-h-11 items-center rounded-full px-4 text-[15px] font-medium text-[#f9fafb] transition-colors hover:bg-white/[0.08]">
+              {EMAIL}
             </a>
+            <Link
+              to={CONTACT_URL}
+              onClick={close}
+              className={`${CTA_BUTTON} mt-1 flex min-h-11`}>
+              Start a project
+              <ArrowIcon />
+            </Link>
           </div>
         )}
       </nav>

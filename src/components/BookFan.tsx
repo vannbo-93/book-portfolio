@@ -297,7 +297,7 @@ const BookFan = ({
           onPointerCancel={endDrag}
           onClickCapture={onClickCapture}
           onDragStart={(e) => e.preventDefault()}
-          className="relative h-full w-full cursor-grab touch-pan-y select-none active:cursor-grabbing [--page-h:calc(var(--page-w)*1.4)] [--page-w:clamp(120px,20vw,250px)]"
+          className="relative h-full w-full cursor-grab touch-pan-y select-none active:cursor-grabbing [--page-h:calc(var(--page-w)*1.5)] [--page-w:clamp(120px,20vw,250px)]"
           style={{ perspective: "1600px" }}>
           <motion.div
             className="absolute inset-0"

@@ -10,6 +10,8 @@ import { Link } from "react-router";
 import {
   animate,
   motion,
+  useAnimationFrame,
+  useInView,
   useMotionValue,
   useReducedMotion,
   useScroll,
@@ -23,6 +25,7 @@ import {
 // عند التحميل ينفتح الكتاب من صفحات مكدسة إلى مروحة كاملة،
 // ومع التمرير تدور المروحة حول الكعب بينما يبقى المشهد ثابتًا في الشاشة (sticky).
 // بالماوس: السحب يدير الكتاب (مع اندفاع عند الإفلات)، وحركة المؤشر تميله قليلًا.
+// وفوق كل ذلك يدور الكتاب حول نفسه ببطء وبلا توقف (autoSpin).
 
 export interface FanItem {
   src: string;
@@ -40,6 +43,8 @@ interface BookFanProps {
   // ميل محور الكتاب: يجعل المشهد يبدو ثلاثي الأبعاد بدل دوران مسطح
   tiltX?: number;
   tiltZ?: number;
+  // دوران تلقائي مستمر حول الكعب، بالدرجات في الثانية (0 = بلا دوران تلقائي)
+  autoSpin?: number;
   // نصوص فوق المشهد، تبقى ثابتة معه أثناء التمرير
   children?: ReactNode;
   className?: string;
@@ -141,6 +146,7 @@ const BookFan = ({
   turns = 360,
   tiltX = 10,
   tiltZ = -14,
+  autoSpin = 15,
   children,
   className = "",
 }: BookFanProps) => {
@@ -165,7 +171,11 @@ const BookFan = ({
   // ---- السحب بالماوس (أو بالإصبع أفقيًا) ----
   // dragRotation يُضاف فوق دوران التمرير، فيعمل الاثنان معًا
   const dragRotation = useMotionValue(0);
-  const rotation = useTransform(() => scrollPart.get() + dragRotation.get());
+  // الدوران التلقائي: يُضاف فوق التمرير والسحب، فيعمل الثلاثة معًا
+  const autoRotation = useMotionValue(0);
+  const rotation = useTransform(
+    () => scrollPart.get() + dragRotation.get() + autoRotation.get(),
+  );
 
   const drag = useRef({
     active: false,
@@ -234,6 +244,14 @@ const BookFan = ({
       });
     }
   };
+
+  // ---- الدوران التلقائي: 360 درجة كل (360 ÷ autoSpin) ثانية ----
+  // يتوقف أثناء السحب باليد، وحين يخرج الكتاب من الشاشة، ولمن فعّل "تقليل الحركة"
+  const inView = useInView(sectionRef);
+  useAnimationFrame((_, delta) => {
+    if (!autoSpin || reduceMotion || !inView || drag.current.active) return;
+    autoRotation.set(autoRotation.get() - (autoSpin * delta) / 1000);
+  });
 
   // ضغطة بعد سحب لا تفتح صفحة الكتاب
   const onClickCapture = (e: ReactMouseEvent) => {

@@ -15,7 +15,7 @@ import {
   RESPONSE_TIME,
   SOCIALS,
 } from "../data/site";
-import { MONO, useClock } from "../hooks//useClock";
+import { MONO, useClock } from "../hooks/useClock";
 
 // الفوتر بنفس أسلوب الناف بار: بلا إطارات ولا خلفيات، نفس الأعمدة الأربعة ونفس الخطين.
 //   عمود 1: سؤال للعميل + البريد بخط كبير (خط الاسم في الناف بار)

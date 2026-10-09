@@ -2,6 +2,15 @@
 import BookFan, { type FanItem } from "../components/BookFan";
 import LatestWorks from "../components/LatestWorks";
 import ScrambleText from "../components/ScrambleText";
+import Services from "../components/services";
+import WhatIDo from "../components/WhatIDo";
+import StackReveal from "../components/StackReveal";
+import Advantage from "../components/Advantage";
+import MediaExpand from "../components/MediaExpand";
+import FAQ from "../components/FAQ";
+import Testimonials from "../components/Testimonials";
+import Contact from "../components/Contact";
+import CoverMarquee from "../components/CoverMarquee";
 import type { FormatKey, LatestItem } from "../data/formats";
 import { books } from "../data/books";
 import { SITE } from "../layout";
@@ -77,7 +86,30 @@ const Home = () => (
       </BookFan>
 
       <LatestWorks id="latest" items={LATEST} total={books.length} />
+
+      <Services />
     </div>
+
+    {/* WHAT I DO يثبت، ثم يغطيه لوحان أسودان (مكان مقاطع الأنميشن لاحقًا): الأيمن أولًا ثم الأيسر.
+        خارج حدود الموقع حتى يغطي اللوحان عرض الشاشة كله */}
+    <StackReveal next={<Advantage />}>
+      <WhatIDo />
+    </StackReveal>
+    {/* المربع الأسود الذي يكبر حتى يغطي الشاشة. مقطع الفيديو يوضع داخله لاحقًا */}
+    <MediaExpand />
+
+    {/* الأسئلة الشائعة */}
+    <FAQ />
+
+    {/* آراء العملاء */}
+    <Testimonials />
+
+    {/* التواصل */}
+    <Contact />
+
+    {/* شريط الأغلفة الحصرية: يمر من اليمين إلى اليسار دون توقف، بعرض الشاشة كاملًا.
+        الآن يعرض نفس أغلفة LATEST، إلى أن تجهز قائمة الأغلفة الحصرية */}
+    <CoverMarquee items={LATEST} />
   </main>
 );
 

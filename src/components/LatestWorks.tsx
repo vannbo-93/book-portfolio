@@ -66,8 +66,9 @@ const LatestWorks = ({
   const onLeave = () => setHovering(false);
 
   return (
-    // scroll-mt: حين ننتقل إلى القسم يبقى عنوانه ظاهرًا تحت الناف بار لا مختفيًا خلفه
-    <section id={id} className="scroll-mt-16 py-24 sm:py-32">
+    // المسافة بين الأقسام: py-12 (هاتف) وpy-16 (أكبر). scroll-mt-6: مسافة إضافية فوق القسم
+    // حين ننتقل إليه بزر Scroll down، حتى لا يلتصق العنوان بالناف بار
+    <section id={id} className="scroll-mt-6 py-12 sm:py-16">
       {/* العنوان: LATEST كبيرًا مع العدد صغيرًا فوقه، و[ VIEW ALL ] يمينًا */}
       <header className="mb-10 flex items-start justify-between gap-6 sm:mb-14">
         <h2 className="font-sans text-[clamp(2.5rem,6vw,4.5rem)] font-medium uppercase leading-[0.85] tracking-[-0.06em]">

@@ -1,5 +1,5 @@
 /** @format */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { SITE } from "../layout";
 import { books } from "../data/books";
@@ -24,9 +24,11 @@ const COLUMNS = [
   ],
 ];
 
-// اللون: أسود فوق الصفحة الفاتحة، وفاتح فوق الأقسام الداكنة (data-nav="dark")
-const INK = "#000";
-const INK_ON_DARK = "#f9fafb";
+// اللون: أسود فوق الصفحة الفاتحة، وفاتح فوق الأقسام الداكنة (data-nav="dark").
+// كل جزء من الناف بار يفحص ما تحته وحده (data-nav-probe)، فيتغير لونه وحده:
+// مثلًا حين يغطي لوح أسود نصف الشاشة الأيمن فقط، تصير الساعة فاتحة ويبقى الاسم أسود.
+// التلوين عبر data-dark (يضعه الفحص مباشرة على العنصر) وتنسيقات data-dark: في Tailwind
+const PROBE = "transition-colors duration-300 data-dark:text-[#f9fafb]";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -34,14 +36,26 @@ const Navbar = () => {
   const close = () => setOpen(false);
   const clock = useClock();
 
-  // هل تحت الناف بار الآن قسم داكن؟ نفحص النقطة التي يقع فيها الاسم عند كل تمرير
-  const [onDark, setOnDark] = useState(false);
+  // عند كل تمرير: لكل جزء من الناف بار، هل تحت منتصفه قسم داكن؟
+  const headerRef = useRef<HTMLElement>(null);
   useEffect(() => {
     let raf = 0;
     const check = () => {
       raf = 0;
-      const under = document.elementsFromPoint(8, 36);
-      setOnDark(under.some((el) => el.closest('[data-nav="dark"]')));
+      headerRef.current
+        ?.querySelectorAll<HTMLElement>("[data-nav-probe]")
+        .forEach((el) => {
+          const r = el.getBoundingClientRect();
+          if (!r.width) return; // جزء مخفي (مثل أعمدة الروابط على الهاتف)
+          const under = document.elementsFromPoint(
+            r.left + r.width / 2,
+            r.top + r.height / 2,
+          );
+          // أعلى عنصر تحت النقطة (غير الناف بار نفسه) هو الظاهر فعلًا: إن كان داخل قسم داكن، يصير النص فاتحًا.
+          // (لا نفحص كل الطبقات: قسم داكن مغطى بقسم فاتح فوقه لا يُحسب)
+          const top = under.find((u) => !headerRef.current?.contains(u));
+          el.toggleAttribute("data-dark", !!top?.closest('[data-nav="dark"]'));
+        });
     };
     const schedule = () => {
       if (!raf) raf = requestAnimationFrame(check);
@@ -55,7 +69,6 @@ const Navbar = () => {
       if (raf) cancelAnimationFrame(raf);
     };
   }, [pathname]);
-  const ink = onDark ? INK_ON_DARK : INK;
 
   const isActive = (href: string) =>
     href === "/"
@@ -72,8 +85,8 @@ const Navbar = () => {
   return (
     // الشريط شفاف ولا يلتقط الماوس، وكل عنصر ظاهر يلتقطه بنفسه
     <header
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 py-4 transition-colors duration-300"
-      style={{ color: ink }}>
+      ref={headerRef}
+      className="pointer-events-none fixed inset-x-0 top-0 z-50 py-4 text-black">
       {/* أربعة أعمدة متساوية تقريبًا: الاسم أعرض قليلًا */}
       <nav
         aria-label="Main"
@@ -81,12 +94,16 @@ const Navbar = () => {
         <Link
           to="/"
           onClick={close}
-          className="pointer-events-auto w-fit font-sans text-[28px] font-medium leading-none tracking-[-0.05em] focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-current">
+          data-nav-probe
+          className="pointer-events-auto w-fit font-sans text-[28px] transition-colors duration-300 data-dark:text-[#f9fafb] font-medium leading-none tracking-[-0.05em] focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-current">
           {BRAND}
         </Link>
 
         {COLUMNS.map((col, i) => (
-          <ul key={i} className={`${MONO} hidden list-none flex-col md:flex`}>
+          <ul
+            key={i}
+            data-nav-probe
+            className={`${MONO} ${PROBE} hidden list-none flex-col md:flex`}>
             {col.map((item) => (
               <li key={item.href}>
                 <Link
@@ -104,7 +121,9 @@ const Navbar = () => {
         ))}
 
         {/* الساعة: tabular-nums تثبّت عرض الأرقام فلا يهتز النص كل ثانية */}
-        <p className={`${MONO} hidden flex-col tabular-nums md:flex`}>
+        <p
+          data-nav-probe
+          className={`${MONO} ${PROBE} hidden flex-col tabular-nums md:flex`}>
           <time>{clock}</time>
           <span>{CITY}</span>
         </p>
@@ -116,7 +135,8 @@ const Navbar = () => {
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
-          className="pointer-events-auto flex size-11 cursor-pointer flex-col items-center justify-center gap-[5px] focus-visible:outline-1 focus-visible:outline-current md:hidden">
+          data-nav-probe
+          className="pointer-events-auto flex size-11 transition-colors duration-300 data-dark:text-[#f9fafb] cursor-pointer flex-col items-center justify-center gap-[5px] focus-visible:outline-1 focus-visible:outline-current md:hidden">
           <span
             className={`block h-[1.5px] w-6 bg-current transition-transform duration-300 motion-reduce:transition-none ${
               open ? "translate-y-[3.25px] rotate-45" : ""

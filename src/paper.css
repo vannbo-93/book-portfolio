@@ -1,0 +1,11 @@
+/**
+ * خلفية الورق: للصفحة كلها، ولأي قسم يجب أن يغطي ما تحته (class="paper-bg")
+ *
+ * @format
+ */
+
+body,
+.paper-bg {
+  background: #faf9f7 url("/paper-strong.webp") repeat;
+  background-size: 512px 512px;
+}

@@ -14,7 +14,6 @@ import {
   useInView,
   useMotionValue,
   useReducedMotion,
-  useScroll,
   useSpring,
   useTransform,
   type MotionValue,
@@ -23,7 +22,7 @@ import {
 // كتاب ثلاثي الأبعاد بتحويلات CSS فقط (بلا WebGL ولا Three.js):
 // كل صفحة عنصر مسطح يدور حول حافته اليسرى، وكل الحواف تلتقي في محور واحد هو كعب الكتاب.
 // عند التحميل ينفتح الكتاب من صفحات مكدسة إلى مروحة كاملة،
-// ومع التمرير تدور المروحة حول الكعب بينما يبقى المشهد ثابتًا في الشاشة (sticky).
+// القسم بارتفاع شاشة واحدة فقط: التمرير لا يدير الكتاب، بل ينتقل مباشرة إلى القسم التالي.
 // بالماوس: السحب يدير الكتاب (مع اندفاع عند الإفلات)، وحركة المؤشر تميله قليلًا.
 // وفوق كل ذلك يدور الكتاب حول نفسه ببطء وبلا توقف (autoSpin).
 
@@ -36,16 +35,12 @@ export interface FanItem {
 
 interface BookFanProps {
   items: FanItem[];
-  // طول مسافة التمرير التي يدور خلالها الكتاب، بارتفاعات الشاشة
-  scrollScreens?: number;
-  // كم درجة يدور الكتاب على طول التمرير
-  turns?: number;
   // ميل محور الكتاب: يجعل المشهد يبدو ثلاثي الأبعاد بدل دوران مسطح
   tiltX?: number;
   tiltZ?: number;
   // دوران تلقائي مستمر حول الكعب، بالدرجات في الثانية (0 = بلا دوران تلقائي)
   autoSpin?: number;
-  // نصوص فوق المشهد، تبقى ثابتة معه أثناء التمرير
+  // نصوص فوق المشهد (مثل زر Scroll down)
   children?: ReactNode;
   className?: string;
 }
@@ -142,8 +137,6 @@ const Page = ({
 
 const BookFan = ({
   items,
-  scrollScreens = 3,
-  turns = 360,
   tiltX = 10,
   tiltZ = -14,
   autoSpin = 15,
@@ -153,29 +146,10 @@ const BookFan = ({
   const sectionRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
 
-  // التقدّم في التمرير داخل القسم: 0 عند بدايته و1 عند نهايته
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
-  const scrollRotation = useTransform(scrollYProgress, [0, 1], [0, -turns]);
-  // نابض خفيف: يجعل الدوران ينساب ويتباطأ بعد توقف التمرير بدل أن يقف فجأة
-  const smoothScroll = useSpring(scrollRotation, {
-    stiffness: 120,
-    damping: 30,
-    mass: 0.6,
-  });
-  const staticRotation = useMotionValue(0);
-  const scrollPart = reduceMotion ? staticRotation : smoothScroll;
-
-  // ---- السحب بالماوس (أو بالإصبع أفقيًا) ----
-  // dragRotation يُضاف فوق دوران التمرير، فيعمل الاثنان معًا
+  // ---- الدوران = السحب باليد + الدوران التلقائي، يعملان معًا ----
   const dragRotation = useMotionValue(0);
-  // الدوران التلقائي: يُضاف فوق التمرير والسحب، فيعمل الثلاثة معًا
   const autoRotation = useMotionValue(0);
-  const rotation = useTransform(
-    () => scrollPart.get() + dragRotation.get() + autoRotation.get(),
-  );
+  const rotation = useTransform(() => dragRotation.get() + autoRotation.get());
 
   const drag = useRef({
     active: false,
@@ -301,11 +275,9 @@ const BookFan = ({
   }, [openness, reduceMotion]);
 
   return (
-    <section
-      ref={sectionRef}
-      className={`relative ${className}`}
-      style={{ height: reduceMotion ? "100vh" : `${scrollScreens * 100}vh` }}>
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
+    // شاشة واحدة: لا مسافة تمرير إضافية ولا تثبيت (sticky)
+    <section ref={sectionRef} className={`relative h-screen ${className}`}>
+      <div className="flex h-full items-center justify-center overflow-hidden">
         {/* المسرح: perspective تعطي العمق، والميل يُظهر المروحة من زاوية.
             touch-action: pan-y يترك التمرير العمودي للمتصفح، والسحب الأفقي للكتاب */}
         <div

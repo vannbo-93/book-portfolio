@@ -1,5 +1,8 @@
 /** @format */
 import BookFan, { type FanItem } from "../components/BookFan";
+import LatestWorks from "../components/LatestWorks";
+import ScrambleText from "../components/ScrambleText";
+import type { FormatKey, LatestItem } from "../data/formats";
 import { books } from "../data/books";
 import { SITE } from "../layout";
 
@@ -17,16 +20,63 @@ const items: FanItem[] = books.flatMap((book) => [
     .map((s) => ({ src: s.src, alt: "" })),
 ]);
 
+// آخر الأعمال: أغلفة بمقاسات كتب حقيقية مختلفة (جيب، رواية، مربع، أفقي...).
+// مؤقتًا: الصور من books.ts (غلاف كل كتاب ثم صفحاته بالتناوب) والمقاسات موزعة بالتناوب.
+// حين تصل الأعمال الحقيقية: ضع لكل عمل صورة غلافه ومقاسه الحقيقي (format)
+const DEMO_FORMATS: FormatKey[] = [
+  "standard",
+  "square",
+  "pocket",
+  "landscape",
+  "novel",
+  "workbook",
+  "a5",
+  "standard",
+  "landscape",
+  "pocket",
+];
+const perBook = books.map((book) => [
+  { src: book.cover.src, title: book.title, href: `/books/${book.slug}` },
+  ...book.spreads.map((s, i) => ({
+    src: s.src,
+    title: `${book.title} · ${String(i + 1).padStart(2, "0")}`,
+    href: `/books/${book.slug}`,
+  })),
+]);
+const LATEST: LatestItem[] = Array.from(
+  { length: Math.max(...perBook.map((p) => p.length)) },
+  (_, i) => perBook.map((p) => p[i]).filter(Boolean),
+)
+  .flat()
+  .slice(0, 10)
+  .map((item, i) => ({
+    ...item,
+    format: DEMO_FORMATS[i % DEMO_FORMATS.length],
+  }));
+
+// زر Scroll down: ينقل إلى قسم آخر الأعمال بانسياب (فورًا لمن فعّل "تقليل الحركة")
+const scrollToLatest = () => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document
+    .getElementById("latest")
+    ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+};
+
 const Home = () => (
   <main className="font-mono text-xs uppercase tracking-wide">
     <h1 className="sr-only">Designer Name — Book cover design portfolio</h1>
 
     <div className={SITE}>
       <BookFan items={items}>
-        <span className="absolute bottom-6 left-1/2 -translate-x-1/2">
-          [ Scroll down ]
-        </span>
+        <button
+          type="button"
+          onClick={scrollToLatest}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 cursor-pointer uppercase underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-current">
+          <ScrambleText text="[ Scroll down ]" />
+        </button>
       </BookFan>
+
+      <LatestWorks id="latest" items={LATEST} total={books.length} />
     </div>
   </main>
 );

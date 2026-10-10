@@ -13,6 +13,10 @@ const schema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+  // مفتاح توقيع جلسات الأدمن: نص عشوائي طويل وسري (32 حرفًا على الأقل). من يعرفه يستطيع انتحال الأدمن
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+  // مدة الجلسة قبل أن يُطلب تسجيل الدخول من جديد (بالأيام)
+  SESSION_DAYS: z.coerce.number().int().positive().default(7),
 });
 
 const parsed = schema.safeParse(process.env);

@@ -130,10 +130,8 @@ const Intro = () => {
 
   useEffect(() => {
     if (!show) return;
-    // منع التمرير أثناء ظهور الشاشة
-    const prev = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    stopScroll(); // وإيقاف التمرير الناعم أيضًا
+    // منع التمرير أثناء ظهور الشاشة (دون إخفاء شريط التمرير، حتى لا تهتز الصفحة عند ظهوره)
+    stopScroll();
     // لمن فعّل "تقليل الحركة": أقصر بكثير
     const k = reduce ? 0.3 : 1;
     const t1 = window.setTimeout(() => setShowText(false), TEXT_OUT_AT * k);
@@ -141,7 +139,6 @@ const Intro = () => {
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
-      document.documentElement.style.overflow = prev;
       startScroll();
     };
   }, [show, reduce]);

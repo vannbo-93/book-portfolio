@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
-import { setLenis } from "../lib/scroll";
+import { isScrollBlocked, setLenis } from "../lib/scroll";
 
 // تمرير ناعم للموقع كله (Lenis): عجلة الماوس ولوحة اللمس تحرك الصفحة بانسياب
 // وتتباطأ تدريجيًا عند التوقف، بدل القفزات الحادة لتمرير المتصفح العادي.
@@ -27,6 +27,13 @@ const SmoothScroll = () => {
       autoRaf: true,
       // روابط # داخل الصفحة تنتقل بنعومة
       anchors: true,
+      // أثناء شاشة الدخول والانتقال بين الصفحات: تُتجاهل العجلة (بلا إخفاء شريط التمرير)
+      virtualScroll: ({ event }) => {
+        if (!isScrollBlocked()) return true;
+        // نمنع تمرير المتصفح أيضًا، لا تمرير Lenis فقط
+        if (event.cancelable) event.preventDefault();
+        return false;
+      },
     });
     setLenis(lenis);
     return () => {

@@ -151,6 +151,8 @@ const Intro = () => {
       {show && (
         <motion.div
           key="intro"
+          // data-intro: علامة لـ RevealOnScroll حتى ينتظر اختفاء هذه الشاشة
+          data-intro
           aria-hidden="true"
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black text-white"
           exit={{ opacity: 0 }}

@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Intro from "./components/Intro";
 import SmoothScroll from "./components/SmoothScroll";
+import RevealOnScroll from "./components/RevealOnScroll";
 import { jumpTo } from "./lib/scroll";
 import Home from "./pages/Home";
 import Works from "./pages/Works";
@@ -59,6 +60,8 @@ const App = () => (
     {/* التمرير الناعم للموقع كله */}
     <SmoothScroll />
     <ScrollToTop />
+    {/* ظهور العناوين أثناء التمرير، في كل الصفحات */}
+    <RevealOnScroll />
     <Navbar />
     <Routes>
       {/* الصفحة الرئيسية تضع الحدود بنفسها لكل قسم، لأن بعض أقسامها تمتد لعرض الشاشة */}

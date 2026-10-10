@@ -1,0 +1,29 @@
+/**
+ * ظهور العناوين أثناء التمرير (انظر RevealOnScroll.tsx):
+ *    العنوان يبدأ مخفيًا خلف قناع وأخفض قليلًا، ثم يصعد وينكشف من الأسفل إلى الأعلى.
+ *
+ * @format
+ */
+
+[data-reveal] {
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    clip-path 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(0.5em);
+  clip-path: inset(0 0 100% 0);
+}
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+  /* مساحة واسعة حول العنوان أثناء الحركة: حتى لا يُقص ما يخرج عن حدوده،
+     مثل الرقم الصغير [10] فوق LATEST أو ذيل الحروف g وy */
+  clip-path: inset(-100% -10% -40% -10%);
+}
+/* بعد انتهاء الحركة: يُلغى القناع تمامًا، فيعود العنوان كما صُمم دون أي قص */
+[data-reveal="done"] {
+  transition: none;
+}

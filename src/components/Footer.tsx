@@ -2,6 +2,7 @@
 import { useRef } from "react";
 import { Link } from "react-router";
 import { motion, useInView, useReducedMotion } from "motion/react";
+import { scrollToTop } from "../lib/scroll";
 import { SITE } from "../layout";
 import StatusDot from "./StatusDot";
 import { books } from "../data/books";
@@ -39,9 +40,8 @@ const BackToTop = () => {
   const reduce = useReducedMotion();
   const play = inView && !reduce;
 
-  const toTop = () => {
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-  };
+  // العودة للأعلى بنفس نعومة تمرير الموقع
+  const toTop = () => scrollToTop();
 
   return (
     <button

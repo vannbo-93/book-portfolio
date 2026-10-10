@@ -9,6 +9,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
 import ScrambleText from "./ScrambleText";
+import { scrollToElement } from "../lib/scroll";
 import { FORMATS, type LatestItem } from "../data/formats";
 
 // القسم الأول في صفحة الخدمات: خلفية سوداء، عنوان في المنتصف.
@@ -86,13 +87,7 @@ const ServicesHero = ({
     );
   };
 
-  const scrollDown = () =>
-    document
-      .getElementById(nextId)
-      ?.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
-        block: "start",
-      });
+  const scrollDown = () => scrollToElement(document.getElementById(nextId));
 
   return (
     <section

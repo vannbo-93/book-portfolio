@@ -15,6 +15,7 @@ import type { FormatKey, LatestItem } from "../data/formats";
 import { books } from "../data/books";
 import { COVERS } from "../data/covers";
 import { SITE } from "../layout";
+import { scrollToElement } from "../lib/scroll";
 
 // صفحات الكتاب: كوفر كل كتاب (رابط إلى صفحته) ثم أول صفحاته المزدوجة.
 // الكوفر وحده رابط، حتى لا يمر مستخدم لوحة المفاتيح على 12 رابطًا مكررًا
@@ -64,13 +65,8 @@ const LATEST: LatestItem[] = Array.from(
     format: DEMO_FORMATS[i % DEMO_FORMATS.length],
   }));
 
-// زر Scroll down: ينقل إلى قسم آخر الأعمال بانسياب (فورًا لمن فعّل "تقليل الحركة")
-const scrollToLatest = () => {
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document
-    .getElementById("latest")
-    ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
-};
+// زر Scroll down: ينقل إلى قسم آخر الأعمال بنفس نعومة تمرير الموقع
+const scrollToLatest = () => scrollToElement(document.getElementById("latest"));
 
 const Home = () => (
   <main className="font-mono text-xs uppercase tracking-wide">

@@ -4,6 +4,8 @@ import { Routes, Route, useLocation } from "react-router";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Intro from "./components/Intro";
+import SmoothScroll from "./components/SmoothScroll";
+import { jumpTo } from "./lib/scroll";
 import Home from "./pages/Home";
 import Works from "./pages/Works";
 import Book from "./pages/Book";
@@ -40,7 +42,7 @@ const ScrollToTop = () => {
   useLayoutEffect(() => {
     const id = hash ? hash.slice(1) : SECTION_ROUTES[pathname];
     const target = id ? document.getElementById(id) : null;
-    window.scrollTo(0, target ? layoutTop(target) : 0);
+    jumpTo(target ? layoutTop(target) : 0);
   }, [pathname, hash]);
   return null;
 };
@@ -54,6 +56,8 @@ const App = () => (
   <div className="relative isolate min-h-screen">
     {/* شاشة الدخول السوداء مع اسم الموقع (مرة في كل زيارة) */}
     <Intro />
+    {/* التمرير الناعم للموقع كله */}
+    <SmoothScroll />
     <ScrollToTop />
     <Navbar />
     <Routes>

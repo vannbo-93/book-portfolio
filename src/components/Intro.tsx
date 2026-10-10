@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { BRAND } from "../data/site";
 import { COVERS } from "../data/covers";
 import { FORMATS } from "../data/formats";
+import { startScroll, stopScroll } from "../lib/scroll";
 
 // شاشة الدخول: صفحة سوداء في منتصفها اسم الموقع بحجم نص عادي. المدة الكاملة 2.5 ثانية:
 //   0.0 – 0.6 ث: يظهر الاسم بالتلاشي (من شفاف إلى واضح)
@@ -132,6 +133,7 @@ const Intro = () => {
     // منع التمرير أثناء ظهور الشاشة
     const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
+    stopScroll(); // وإيقاف التمرير الناعم أيضًا
     // لمن فعّل "تقليل الحركة": أقصر بكثير
     const k = reduce ? 0.3 : 1;
     const t1 = window.setTimeout(() => setShowText(false), TEXT_OUT_AT * k);
@@ -140,6 +142,7 @@ const Intro = () => {
       clearTimeout(t1);
       clearTimeout(t2);
       document.documentElement.style.overflow = prev;
+      startScroll();
     };
   }, [show, reduce]);
 

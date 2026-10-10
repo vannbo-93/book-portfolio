@@ -3,6 +3,7 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import { ZodError } from "zod";
 import mongoose from "mongoose";
+import multer from "multer";
 import { isProd } from "../config/env.js";
 
 // خطأ مقصود برقم HTTP ورسالة (مثل 404 "Book not found")
@@ -45,6 +46,18 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
       .json({
         message: `Already exists: ${Object.keys(err.keyValue ?? {}).join(", ")}`,
       });
+    return;
+  }
+  // مشكلة في الملف المرفوع (حجم كبير، عدد كبير من الملفات...)
+  if (err instanceof multer.MulterError) {
+    const messages: Partial<Record<multer.ErrorCode, string>> = {
+      LIMIT_FILE_SIZE: "File is too large",
+      LIMIT_FILE_COUNT: "Too many files",
+      LIMIT_UNEXPECTED_FILE: `Unexpected field: ${err.field}`,
+    };
+    res
+      .status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400)
+      .json({ message: messages[err.code] ?? err.message });
     return;
   }
   if (err instanceof AppError) {

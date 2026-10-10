@@ -1,0 +1,63 @@
+/** @format */
+
+import type { UploadApiResponse } from "cloudinary";
+import cloudinary from "../config/cloudinary.js";
+import { env } from "../config/env.js";
+
+export type ResourceType = "image" | "video";
+
+// ما نحفظه عن كل ملف في قاعدة البيانات (داخل الكتاب، الغلاف، الشهادة...)
+export interface Media {
+  url: string; // رابط https للعرض في الموقع
+  publicId: string; // معرّف الملف في Cloudinary: نحتاجه لحذفه
+  resourceType: ResourceType;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+}
+
+// رفع ملف من الذاكرة إلى Cloudinary
+export const uploadBuffer = (
+  buffer: Buffer,
+  resourceType: ResourceType,
+  subfolder?: string,
+) =>
+  new Promise<Media>((resolve, reject) => {
+    const folder = subfolder
+      ? `${env.CLOUDINARY_FOLDER}/${subfolder}`
+      : env.CLOUDINARY_FOLDER;
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: resourceType },
+      (error, result?: UploadApiResponse) => {
+        if (error || !result)
+          return reject(error ?? new Error("Upload failed"));
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+          resourceType,
+          width: result.width,
+          height: result.height,
+          format: result.format,
+          bytes: result.bytes,
+        });
+      },
+    );
+    stream.end(buffer);
+  });
+
+// هل الملف داخل مجلد الموقع؟ (حماية: لا نحذف أي ملف آخر في حساب Cloudinary)
+export const isOwnMedia = (publicId: string) =>
+  publicId.startsWith(`${env.CLOUDINARY_FOLDER}/`);
+
+// حذف ملف من Cloudinary. يُرجع true إن حُذف، false إن لم يكن موجودًا
+export const deleteMedia = async (
+  publicId: string,
+  resourceType: ResourceType,
+) => {
+  const res = await cloudinary.uploader.destroy(publicId, {
+    resource_type: resourceType,
+    invalidate: true,
+  });
+  return res.result === "ok";
+};

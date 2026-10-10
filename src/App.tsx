@@ -3,10 +3,13 @@ import { useLayoutEffect, type ReactNode } from "react";
 import { Routes, Route, useLocation } from "react-router";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Intro from "./components/Intro";
 import Home from "./pages/Home";
 import Works from "./pages/Works";
 import Book from "./pages/Book";
 import ServicesPage from "./pages/ServicesPage";
+import ContactPage from "./pages/ContactPage";
+import Process from "./pages/Process";
 import NotFound from "./pages/NotFound";
 import { SITE } from "./layout";
 
@@ -49,6 +52,8 @@ const Bounded = ({ children }: { children: ReactNode }) => (
 
 const App = () => (
   <div className="relative isolate min-h-screen">
+    {/* شاشة الدخول السوداء مع اسم الموقع (مرة في كل زيارة) */}
+    <Intro />
     <ScrollToTop />
     <Navbar />
     <Routes>
@@ -74,7 +79,11 @@ const App = () => (
       <Route path="/about" element={<ServicesPage />} />
       {/* /services (زر View all وروابط Services): نفس الصفحة، تبدأ مباشرة من بطاقات الخدمات (SECTION_ROUTES) */}
       <Route path="/services" element={<ServicesPage />} />
-      {/* أي رابط آخر (ومنها Contact وProcess حتى نبنيها) */}
+      {/* صفحة التواصل: النموذج وشريط الأغلفة بعرض الشاشة */}
+      <Route path="/contact" element={<ContactPage />} />
+      {/* صفحة مراحل العمل */}
+      <Route path="/process" element={<Process />} />
+      {/* أي رابط آخر */}
       <Route
         path="*"
         element={

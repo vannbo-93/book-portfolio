@@ -2,7 +2,7 @@
 import BookFan, { type FanItem } from "../components/BookFan";
 import LatestWorks from "../components/LatestWorks";
 import ScrambleText from "../components/ScrambleText";
-import Services from "../components/services";
+import Services from "../components/Services";
 import WhatIDo from "../components/WhatIDo";
 import StackReveal from "../components/StackReveal";
 import Advantage from "../components/Advantage";
@@ -13,6 +13,7 @@ import Contact from "../components/Contact";
 import CoverMarquee from "../components/CoverMarquee";
 import type { FormatKey, LatestItem } from "../data/formats";
 import { books } from "../data/books";
+import { COVERS } from "../data/covers";
 import { SITE } from "../layout";
 
 // صفحات الكتاب: كوفر كل كتاب (رابط إلى صفحته) ثم أول صفحاته المزدوجة.
@@ -107,9 +108,9 @@ const Home = () => (
     {/* التواصل */}
     <Contact />
 
-    {/* شريط الأغلفة الحصرية: يمر من اليمين إلى اليسار دون توقف، بعرض الشاشة كاملًا.
-        الآن يعرض نفس أغلفة LATEST، إلى أن تجهز قائمة الأغلفة الحصرية */}
-    <CoverMarquee items={LATEST} />
+    {/* شريط الأغلفة: يمر من اليمين إلى اليسار دون توقف، بعرض الشاشة كاملًا.
+        يعرض كل أغلفة الموقع (covers.ts)، مثل صفحة CONTACT */}
+    <CoverMarquee items={COVERS} />
   </main>
 );
 

@@ -54,17 +54,36 @@ const Book = () => {
           <h1 className="font-sans text-[clamp(2.5rem,7vw,6rem)] font-medium leading-[0.9] tracking-[-0.06em]">
             {book.title}
           </h1>
-          <p className="mt-6 max-w-xl font-sans text-lg leading-relaxed text-black/70">
-            {book.description}
-          </p>
+          {/* نبذة عن المشروع */}
+          <div className="mt-10">
+            <p className={`${MONO}`}>About the project</p>
+            <div className="mt-4 flex max-w-xl flex-col gap-4 font-sans text-[15px] font-medium leading-snug">
+              {(Array.isArray(book.description)
+                ? book.description
+                : [book.description]
+              ).map((para) => (
+                <p key={para}>{para}</p>
+              ))}
+            </div>
+          </div>
 
-          {/* تفاصيل المشروع: أضف حقولًا هنا حين تصل المعلومات الحقيقية (المؤلف، الناشر، الخدمة...) */}
+          {/* تفاصيل المشروع: العنوان فوق والقيمة تحته، في أعمدة (2 على الهاتف، 4 على الأكبر).
+              الحقل الفارغ في books.ts لا يظهر */}
           <dl
-            className={`${MONO} mt-10 grid max-w-sm grid-cols-[7rem_1fr] gap-y-2 border-t border-black/10 pt-4`}>
-            <dt className="text-black/40">Year</dt>
-            <dd>{book.year}</dd>
-            <dt className="text-black/40">Pages shown</dt>
-            <dd>{book.spreads.length} spreads</dd>
+            className={`${MONO} mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4`}>
+            {[
+              ["Client", book.client],
+              ["Services", book.services],
+              ["Year", String(book.year)],
+              ["Location", book.location],
+            ]
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd className="mt-3 font-medium">{value}</dd>
+                </div>
+              ))}
           </dl>
         </div>
       </section>

@@ -6,12 +6,16 @@ export interface Img {
   height: number;
   alt: string;
 }
-
 export interface Book {
   slug: string;
   title: string;
   year: number;
-  description: string;
+  // نبذة عن المشروع: تظهر تحت "About the project". مصفوفة = عدة فقرات
+  description: string | string[];
+  // تفاصيل المشروع (اختيارية): ما لم يُكتب لا يظهر
+  client?: string;
+  services?: string;
+  location?: string;
   cover: Img;
   spreads: Img[];
 }

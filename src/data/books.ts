@@ -15,6 +15,7 @@ const nature = (
   alt,
 });
 
+// client / services / location: مؤقتة، استبدلها بمعلومات كل مشروع الحقيقية
 // الكوفر بنسبة 2:3، والصفحة المزدوجة 4:3 (صفحتان عموديتان جنبًا إلى جنب)
 const cover = (id: string, alt: string) => nature(id, 600, 900, alt);
 const spread = (id: string) => nature(id, 1600, 1200, "");
@@ -25,6 +26,9 @@ export const books: Book[] = [
     title: "Mountains",
     year: 2025,
     description: "Peaks, ridges and the quiet light above the clouds.",
+    client: "Client Name",
+    services: "Cover & interior design",
+    location: "City, Country",
     cover: cover("1506905925346-21bda4d32df4", "Mountains cover"),
     spreads: [
       spread("1470071459604-3b5ec3a7fe05"),
@@ -38,6 +42,9 @@ export const books: Book[] = [
     title: "Forests",
     year: 2024,
     description: "Paths, trunks and green shadows deep in the woods.",
+    client: "Client Name",
+    services: "Journal design",
+    location: "City, Country",
     cover: cover("1441974231531-c6227db76b6e", "Forests cover"),
     spreads: [
       spread("1447752875215-b2761acb3c5d"),
@@ -51,6 +58,9 @@ export const books: Book[] = [
     title: "Waters",
     year: 2023,
     description: "Lakes, waterfalls and the edge of the sea.",
+    client: "Client Name",
+    services: "Ebook & digital PDF",
+    location: "City, Country",
     cover: cover("1433086966358-54859d0ed716", "Waters cover"),
     spreads: [
       spread("1470770841072-f978cf4d019e"),

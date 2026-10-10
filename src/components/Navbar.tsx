@@ -5,6 +5,7 @@ import { SITE } from "../layout";
 import { books } from "../data/books";
 import { BRAND, CITY, EMAIL, NAV_LINKS } from "../data/site";
 import { MONO, useClock } from "../hooks/useClock";
+import { scrollToTop } from "../lib/scroll";
 
 // ناف بار بأسلوب صحفي بسيط: بلا خلفية ولا إطار ولا أزرار.
 //   عمود 1: الاسم بخط كبير
@@ -12,6 +13,9 @@ import { MONO, useClock } from "../hooks/useClock";
 //   عمود 4: ساعة صاحب الموقع الآن + مدينته
 // الروابط والساعة بخط أحادي المسافة (monospace) عريض وصغير، بأحرف كبيرة.
 // على الهاتف: الاسم يسارًا وزر القائمة يمينًا.
+//
+// يختفي للأعلى حين تمرر إلى الأسفل، ويعود فور التمرير إلى الأعلى (وفي أعلى الصفحة يبقى ظاهرًا دائمًا).
+// الضغط على الاسم: يعيدك إلى الصفحة الرئيسية من أعلاها (وإن كنت فيها، يصعد بك إلى أعلاها بنعومة).
 
 const COLUMNS = [
   [
@@ -35,6 +39,9 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const clock = useClock();
+
+  // مخفي؟ (يتغير مع اتجاه التمرير)
+  const [hidden, setHidden] = useState(false);
 
   // عند كل تمرير: لكل جزء من الناف بار، هل تحت منتصفه قسم داكن؟
   const headerRef = useRef<HTMLElement>(null);
@@ -60,11 +67,27 @@ const Navbar = () => {
     const schedule = () => {
       if (!raf) raf = requestAnimationFrame(check);
     };
+
+    // اتجاه التمرير: لا نتفاعل مع حركات صغيرة جدًا (أقل من 6px) حتى لا يرتعش الناف بار
+    let lastY = window.scrollY;
+    const direction = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
+      if (Math.abs(delta) < 6) return;
+      // في أول 80px من الصفحة: ظاهر دائمًا
+      setHidden(delta > 0 && y > 80);
+      lastY = y;
+    };
+    const onScroll = () => {
+      schedule();
+      direction();
+    };
+
     check();
-    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", schedule);
     return () => {
-      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", schedule);
       if (raf) cancelAnimationFrame(raf);
     };
@@ -84,16 +107,28 @@ const Navbar = () => {
 
   return (
     // الشريط شفاف ولا يلتقط الماوس، وكل عنصر ظاهر يلتقطه بنفسه
+    // يختفي بالانزلاق للأعلى (لا يختفي والقائمة مفتوحة، ولا حين يصل إليه التركيز بلوحة المفاتيح)
     <header
       ref={headerRef}
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 py-4 text-black">
+      onFocusCapture={() => setHidden(false)}
+      className={`pointer-events-none fixed inset-x-0 top-0 z-50 py-4 text-black transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+        hidden && !open ? "-translate-y-full" : ""
+      }`}>
       {/* أربعة أعمدة متساوية تقريبًا: الاسم أعرض قليلًا */}
       <nav
         aria-label="Main"
         className={`${SITE} relative flex items-center justify-between md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:items-start md:gap-6`}>
         <Link
           to="/"
-          onClick={close}
+          onClick={(e) => {
+            close();
+            // في الصفحة الرئيسية أصلًا: لا انتقال، بل صعود ناعم إلى أعلاها
+            if (pathname === "/") {
+              e.preventDefault();
+              scrollToTop();
+            }
+          }}
+          aria-label={`${BRAND}, home`}
           data-nav-probe
           className="pointer-events-auto w-fit font-sans text-[28px] transition-colors duration-300 data-dark:text-[#f9fafb] font-medium leading-none tracking-[-0.05em] focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-current">
           {BRAND}

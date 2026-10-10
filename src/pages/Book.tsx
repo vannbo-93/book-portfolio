@@ -90,9 +90,10 @@ const Book = () => {
 
       {/* الصفحات المزدوجة */}
       {book.spreads.length > 0 && (
+        // mx-auto max-w-6xl: الصفحات المزدوجة في المنتصف بعرض أقصاه 1152px، لا بعرض الشاشة كاملة
         <section
           aria-label="Spreads"
-          className="mt-24 grid gap-10 sm:mt-32 sm:gap-16">
+          className="mx-auto mt-24 grid w-full max-w-6xl gap-10 sm:mt-32 sm:gap-16">
           {book.spreads.map((spread, i) => (
             <motion.figure key={spread.src} {...reveal}>
               <img

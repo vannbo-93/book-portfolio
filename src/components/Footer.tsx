@@ -168,7 +168,7 @@ const Footer = () => {
         {/* اسم الموقع ضخمًا بعرض الصفحة: نفس خط الاسم في الناف بار */}
         <p
           aria-hidden="true"
-          className="mt-20 select-none font-sans text-[clamp(4rem,21vw,19rem)] font-medium leading-[0.8] tracking-[-0.07em]">
+          className="mt-20 select-none text-center font-sans text-[clamp(4rem,21vw,19rem)] font-medium leading-[0.8] tracking-[-0.07em]">
           {BRAND}
         </p>
 

@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Intro from "./components/Intro";
 import SmoothScroll from "./components/SmoothScroll";
+import PageMeta from "./components/PageMeta";
 import RevealOnScroll from "./components/RevealOnScroll";
 import PageSlide from "./components/PageSlide";
 import { PAGE_EXITED } from "./lib/scroll";
@@ -33,6 +34,8 @@ const App = () => {
       <Intro />
       {/* التمرير الناعم للموقع كله */}
       <SmoothScroll />
+      {/* عنوان تبويب المتصفح لكل صفحة */}
+      <PageMeta />
       <Navbar />
 
       {/* الانتقال بين الصفحات: القديمة تنزلق يسارًا والجديدة تدخل ملتصقة بها من اليمين (PageSlide) */}

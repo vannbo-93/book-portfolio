@@ -1,6 +1,5 @@
-/** @format */
-
 import { Schema, model, type InferSchemaType } from "mongoose";
+import { BOOK_FORMATS } from "../lib/formats.js";
 
 // صورة محفوظة على Cloudinary (الغلاف أو صفحة مزدوجة)
 const imageSchema = new Schema(
@@ -20,15 +19,11 @@ export const BOOK_STATUSES = ["draft", "published"] as const;
 const bookSchema = new Schema(
   {
     // الجزء الأخير من الرابط: /books/mountains
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
+    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     title: { type: String, required: true, trim: true },
     year: { type: Number, required: true },
+    // مقاس الكتاب: يحدد شكل غلافه في قسم آخر الأعمال
+    format: { type: String, enum: BOOK_FORMATS, default: "standard" },
     // نبذة عن المشروع: كل عنصر فقرة
     description: { type: [String], default: [] },
     // تفاصيل المشروع (اختيارية): الفارغ لا يظهر في الموقع
@@ -41,12 +36,7 @@ const bookSchema = new Schema(
     // ترتيب الظهور في الموقع: الأصغر أولًا
     order: { type: Number, default: 0, index: true },
     // draft: يراه الأدمن فقط. published: يظهر للزوار
-    status: {
-      type: String,
-      enum: BOOK_STATUSES,
-      default: "draft",
-      index: true,
-    },
+    status: { type: String, enum: BOOK_STATUSES, default: "draft", index: true },
   },
   { timestamps: true },
 );

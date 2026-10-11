@@ -1,7 +1,6 @@
-/** @format */
-
 import { Schema, model } from "mongoose";
 import { mediaSchema } from "../models/media.js";
+import { BOOK_FORMATS } from "../lib/formats.js";
 
 // قوائم المحتوى القابلة للتعديل من لوحة التحكم.
 // كل عنصر له: order (ترتيب الظهور، الأصغر أولًا) و visible (إخفاء دون حذف)
@@ -11,7 +10,8 @@ const base = {
 };
 const opts = { timestamps: true };
 
-// الأغلفة الحصرية (الشريط المتحرك)
+// الأغلفة الحصرية (الشريط المتحرك، وشاشة الدخول، وأول صفحة About)
+// format: مقاس الكتاب (شكل الغلاف). bookSlug: إن كان للغلاف كتاب في الموقع، يفتح صفحته عند الضغط
 export const Cover = model(
   "Cover",
   new Schema(
@@ -19,6 +19,8 @@ export const Cover = model(
       ...base,
       title: { type: String, default: "", trim: true },
       image: { type: mediaSchema, required: true },
+      format: { type: String, enum: BOOK_FORMATS, default: "standard" },
+      bookSlug: { type: String, default: "", trim: true, lowercase: true },
     },
     opts,
   ),

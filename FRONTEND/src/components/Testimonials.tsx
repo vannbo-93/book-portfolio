@@ -9,11 +9,8 @@ import {
 } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
-import {
-  TESTIMONIALS,
-  TESTIMONIALS_TEXT,
-  type Testimonial,
-} from "../data/testimonials";
+import { TESTIMONIALS_TEXT, type Testimonial } from "../data/testimonials";
+import { useSiteData } from "../data/siteData";
 
 // قسم آراء العملاء: خلفية سوداء، عنوان كبير في المنتصف، وتحته تعليق واحد في كل مرة
 // (التعليق، ثم صورة العميل، ثم اسمه وصفته).
@@ -54,6 +51,7 @@ const Testimonials = () => {
   const [dir, setDir] = useState(1);
   const [side, setSide] = useState<"prev" | "next" | null>(null);
 
+  const TESTIMONIALS = useSiteData().testimonials;
   const count = TESTIMONIALS.length;
   const go = (d: 1 | -1) => {
     setDir(d);
@@ -79,6 +77,9 @@ const Testimonials = () => {
     }
     setSide(e.clientX < r.left + r.width / 2 ? "prev" : "next");
   };
+
+  // لا آراء منشورة (بموافقة أصحابها) بعد: لا يظهر القسم
+  if (!t) return null;
 
   return (
     // data-nav="dark": الناف بار يصير أبيض فوق هذا القسم

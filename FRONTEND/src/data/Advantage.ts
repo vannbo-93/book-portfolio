@@ -1,6 +1,5 @@
 /** @format */
-// محتوى قسم "THE ADVANTAGE".
-// الأرقام هنا مؤقتة: استبدلها بأرقام صاحب الموقع الحقيقية.
+// محتوى قسم "THE ADVANTAGE": العناوين هنا، والأرقام من لوحة التحكم.
 // value: الرقم الذي يعدّ من 0 إليه. suffix: ما يُكتب بعده (+ أو %).
 
 export interface Stat {
@@ -16,9 +15,4 @@ export const ADVANTAGE = {
   side: "Execution",
 };
 
-export const STATS: Stat[] = [
-  { value: 10, suffix: "+", label: "Client collaborations" },
-  { value: 5, suffix: "+", label: "Years in practice" },
-  { value: 25, suffix: "+", label: "Delivered works" },
-  { value: 100, suffix: "%", label: "End-to-end delivery" },
-];
+// القائمة نفسها تأتي من الخادم (لوحة التحكم): useSiteData().stats

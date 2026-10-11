@@ -1,16 +1,8 @@
-/** @format */
-
 import { z } from "zod";
 import type { Model } from "mongoose";
 import { mediaInput } from "../lib/mediaInput.js";
-import {
-  Cover,
-  Experience,
-  Faq,
-  Service,
-  Stat,
-  Testimonial,
-} from "./models.js";
+import { Cover, Experience, Faq, Service, Stat, Testimonial } from "./models.js";
+import { BOOK_FORMATS } from "../lib/formats.js";
 
 // كل نوع محتوى: نموذجه في قاعدة البيانات، وفحص بياناته، وما يراه الزائر منه.
 // لإضافة نوع جديد: أضف نموذجًا في models.ts ثم سطرًا هنا، فتعمل له كل المسارات تلقائيًا
@@ -26,7 +18,12 @@ const required = (max = 300) => text(max).min(1, "Required");
 export const CONTENT: Record<string, ContentType> = {
   covers: {
     model: Cover,
-    fields: { title: text(200).default(""), image: mediaInput("image") },
+    fields: {
+      title: text(200).default(""),
+      image: mediaInput("image"),
+      format: z.enum(BOOK_FORMATS).default("standard"),
+      bookSlug: text(80).toLowerCase().default(""),
+    },
   },
   testimonials: {
     model: Testimonial,
@@ -41,11 +38,7 @@ export const CONTENT: Record<string, ContentType> = {
   },
   faqs: {
     model: Faq,
-    fields: {
-      question: required(300),
-      tag: text(60).default(""),
-      answer: required(3000),
-    },
+    fields: { question: required(300), tag: text(60).default(""), answer: required(3000) },
   },
   services: {
     model: Service,
@@ -58,32 +51,19 @@ export const CONTENT: Record<string, ContentType> = {
   },
   stats: {
     model: Stat,
-    fields: {
-      value: z.number().min(0).max(1_000_000),
-      suffix: text(5).default(""),
-      label: required(100),
-    },
+    fields: { value: z.number().min(0).max(1_000_000), suffix: text(5).default(""), label: required(100) },
   },
   experience: {
     model: Experience,
-    fields: {
-      role: required(120),
-      type: text(60).default(""),
-      place: required(150),
-      years: text(30).default(""),
-    },
+    fields: { role: required(120), type: text(60).default(""), place: required(150), years: text(30).default("") },
   },
 };
 
 export const CONTENT_TYPES = Object.keys(CONTENT);
 
-const common = {
-  order: z.number().int().min(0).optional(),
-  visible: z.boolean().default(true),
-};
+const common = { order: z.number().int().min(0).optional(), visible: z.boolean().default(true) };
 
-export const createSchema = (type: ContentType) =>
-  z.object({ ...type.fields, ...common });
+export const createSchema = (type: ContentType) => z.object({ ...type.fields, ...common });
 // التعديل: كل الحقول اختيارية (بدون القيم الافتراضية، حتى لا تُمسح الحقول غير المرسلة)
 export const updateSchema = (type: ContentType) =>
   z

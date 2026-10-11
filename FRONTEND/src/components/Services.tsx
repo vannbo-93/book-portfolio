@@ -4,7 +4,9 @@ import { Link } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import ScrambleText from "./ScrambleText";
-import { SERVICES, type Service } from "../data/services";
+import type { Service } from "../data/services";
+import { useSiteData } from "../data/siteData";
+import { sized } from "../lib/image";
 
 // قسم الخدمات: صف لكل خدمة، بخط رفيع تحته.
 //   يسار: الرقم والاسم في الأعلى، والوسم الصغير أسفل يسار،
@@ -67,7 +69,7 @@ const ServiceRow = ({
               {service.images.slice(0, 4).map((src, i) => (
                 <div key={i} className="overflow-hidden bg-neutral-200">
                   <img
-                    src={src}
+                    src={sized(src, 600)}
                     alt=""
                     loading="lazy"
                     decoding="async"
@@ -93,25 +95,29 @@ const ServiceRow = ({
   );
 };
 
-const Services = ({ viewAllHref = "/services" }: { viewAllHref?: string }) => (
-  <section className="py-12 sm:py-16">
-    <header className="mb-10 flex items-start justify-between gap-6 sm:mb-14">
-      <h2 className="font-sans text-[clamp(2.5rem,6vw,4.5rem)] font-medium uppercase leading-[0.85] tracking-[-0.06em]">
-        Service(s)
-      </h2>
-      <Link
-        to={viewAllHref}
-        className={`${MONO} mt-2 whitespace-nowrap underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-current`}>
-        <ScrambleText text="[ View all ]" />
-      </Link>
-    </header>
+const Services = ({ viewAllHref = "/services" }: { viewAllHref?: string }) => {
+  const { services } = useSiteData();
+  if (!services.length) return null;
+  return (
+    <section className="py-12 sm:py-16">
+      <header className="mb-10 flex items-start justify-between gap-6 sm:mb-14">
+        <h2 className="font-sans text-[clamp(2.5rem,6vw,4.5rem)] font-medium uppercase leading-[0.85] tracking-[-0.06em]">
+          Service(s)
+        </h2>
+        <Link
+          to={viewAllHref}
+          className={`${MONO} mt-2 whitespace-nowrap underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-current`}>
+          <ScrambleText text="[ View all ]" />
+        </Link>
+      </header>
 
-    <ul className="list-none border-t border-black">
-      {SERVICES.map((s, i) => (
-        <ServiceRow key={s.title} service={s} index={i} />
-      ))}
-    </ul>
-  </section>
-);
+      <ul className="list-none border-t border-black">
+        {services.map((s, i) => (
+          <ServiceRow key={s.title} service={s} index={i} />
+        ))}
+      </ul>
+    </section>
+  );
+};
 
 export default Services;

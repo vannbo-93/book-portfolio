@@ -1,7 +1,7 @@
 /** @format */
 import { Link, useParams } from "react-router";
 import { motion } from "motion/react";
-import { books } from "../data/books";
+import { useSiteData } from "../data/siteData";
 import { MONO } from "../hooks/useClock";
 import NotFound from "./NotFound";
 
@@ -19,6 +19,7 @@ const reveal = {
 
 const Book = () => {
   const { slug } = useParams();
+  const { books } = useSiteData();
   const index = books.findIndex((b) => b.slug === slug);
   if (index === -1) return <NotFound />;
 
@@ -68,7 +69,7 @@ const Book = () => {
           </div>
 
           {/* تفاصيل المشروع: العنوان فوق والقيمة تحته، في أعمدة (2 على الهاتف، 4 على الأكبر).
-              الحقل الفارغ في books.ts لا يظهر */}
+              الحقل الفارغ لا يظهر */}
           <dl
             className={`${MONO} mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4`}>
             {[

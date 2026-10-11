@@ -1,8 +1,7 @@
 /** @format */
-// قسم آراء العملاء.
-// ⚠ كل ما هنا مؤقت: الأسماء والتعليقات أمثلة فقط. استبدلها بتعليقات حقيقية من عملاء حقيقيين،
-//   بأسمائهم وبموافقتهم على النشر، قبل إطلاق الموقع.
-// photo: مسار صورة العميل أو شعار شركته (مثلًا "/clients/jane.jpg"). بدونه تظهر الأحرف الأولى من الاسم.
+// قسم آراء العملاء: العناوين هنا، والآراء نفسها من لوحة التحكم.
+// لا يظهر رأي في الموقع إلا إن وافق صاحبه على النشر (خانة consent في لوحة التحكم).
+// photo: صورة العميل أو شعار شركته. بدونها تظهر الأحرف الأولى من الاسم.
 
 export interface Testimonial {
   quote: string;
@@ -17,23 +16,4 @@ export const TESTIMONIALS_TEXT = {
   right: "Testimonial",
 };
 
-export const TESTIMONIALS: Testimonial[] = [
-  {
-    quote:
-      "Placeholder — the cover finally looks like the book I wrote. Every page inside feels considered, and the files were ready for print on the first try.",
-    name: "Author Name",
-    role: "Author — Book Title",
-  },
-  {
-    quote:
-      "Placeholder — clear process, honest timelines, and a designer who listens. The planner sold out its first print run.",
-    name: "Brand Name",
-    role: "Founder — Planner Brand",
-  },
-  {
-    quote:
-      "Placeholder — professional from the first message to the final files. Our workbook is easier to use and looks far more premium.",
-    name: "Publisher Name",
-    role: "Editor — Publishing House",
-  },
-];
+// القائمة نفسها تأتي من الخادم (لوحة التحكم): useSiteData().testimonials (التي وافق أصحابها على النشر فقط)

@@ -5,11 +5,15 @@ import { BrowserRouter } from "react-router";
 import "@fontsource-variable/inter";
 import "./index.css";
 import App from "./App";
+import SiteDataProvider from "./components/SiteDataProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      {/* المحتوى من الخادم: يُحمَّل أولًا، ثم يظهر الموقع */}
+      <SiteDataProvider>
+        <App />
+      </SiteDataProvider>
     </BrowserRouter>
   </StrictMode>,
 );

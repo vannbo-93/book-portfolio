@@ -5,17 +5,8 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { scrollToTop } from "../lib/scroll";
 import { SITE } from "../layout";
 import StatusDot from "./StatusDot";
-import { books } from "../data/books";
-import {
-  AVAILABILITY,
-  BRAND,
-  CITY,
-  CONTACT_URL,
-  EMAIL,
-  NAV_LINKS,
-  RESPONSE_TIME,
-  SOCIALS,
-} from "../data/site";
+import { BRAND, CONTACT_URL, NAV_LINKS } from "../data/site";
+import { useSiteData } from "../data/siteData";
 import { MONO, useClock } from "../hooks/useClock";
 
 // الفوتر بنفس أسلوب الناف بار: بلا إطارات ولا خلفيات، نفس الأعمدة الأربعة ونفس الخطين.
@@ -94,6 +85,14 @@ const BackToTop = () => {
 const Footer = () => {
   const year = new Date().getFullYear();
   const clock = useClock();
+  const { books, settings } = useSiteData();
+  const {
+    availability: AVAILABILITY,
+    city: CITY,
+    email: EMAIL,
+    responseTime: RESPONSE_TIME,
+    socials: SOCIALS,
+  } = settings;
   const pages = [
     { href: "/", label: "Home" },
     { href: "/work", label: "Works", count: books.length },

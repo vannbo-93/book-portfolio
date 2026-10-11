@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { BRAND } from "../data/site";
-import { COVERS } from "../data/covers";
+import { useSiteData } from "../data/siteData";
 import { FORMATS } from "../data/formats";
 import { startScroll, stopScroll } from "../lib/scroll";
 
@@ -58,6 +58,7 @@ const STRIP_LOOP = 1.4;
 // الأغلفة الصغيرة: نفس الارتفاع، والعرض حسب مقاس كل كتاب. القائمة مكررة مرتين
 // والشريط يتحرك نصف طوله ثم يعود، فتبدو حركة متصلة بلا نهاية
 const CoverStrip = ({ reduce }: { reduce: boolean }) => {
+  const COVERS = useSiteData().covers;
   const row = (hidden?: boolean) =>
     COVERS.map((c, i) => (
       <img

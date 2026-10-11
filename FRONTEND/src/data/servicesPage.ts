@@ -27,39 +27,18 @@ export const SERVICES_APPROACH = {
   ],
 };
 
-// القسم الثالث: الخبرة ثم الخدمات.
-// ⚠ صفوف الخبرة مؤقتة بأسماء أمثلة: ضع السجل الحقيقي لصاحب الموقع فقط (وظائف وجهات وسنوات حقيقية)،
-//   أو احذف الصفوف واترك ما هو صحيح منها.
+// القسم الثالث: الخبرة ثم الخدمات. صفوف الخبرة نفسها من لوحة التحكم (useSiteData().experience)
+export interface ExperienceRow {
+  role: string;
+  type: string;
+  place: string;
+  years: string;
+}
+
 export const SERVICES_PRACTICE = {
   left: "Practice",
   right: "Career",
   experienceHeading: "Experience",
-  experience: [
-    {
-      role: "Book designer",
-      type: "Freelance",
-      place: "Studio Name",
-      years: "('24–'25)",
-    },
-    {
-      role: "Cover designer",
-      type: "Full-time",
-      place: "Publisher Name",
-      years: "('22–'24)",
-    },
-    {
-      role: "Layout designer",
-      type: "Full-time",
-      place: "Print House Name",
-      years: "('21–'22)",
-    },
-    {
-      role: "Junior designer",
-      type: "Freelance",
-      place: "Studio Name",
-      years: "('20–'21)",
-    },
-  ],
   servicesHeading: "Service(s)",
   // العمود الأوسط تحت FOCUS
   focus: ["Reading", "Layout", "Print"],

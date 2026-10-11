@@ -3,7 +3,8 @@ import { useId, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
-import { FAQ_TEXT, FAQS, type Faq } from "../data/faq";
+import { FAQ_TEXT, type Faq } from "../data/faq";
+import { useSiteData } from "../data/siteData";
 
 // قسم الأسئلة الشائعة: عنوان كبير، ثم قائمة أسئلة.
 // عند المرور بالماوس على سؤال: ينطلق شريط أسود من اليسار إلى أقصى اليمين، والنص تحته يصير أبيض.
@@ -49,6 +50,9 @@ const FAQ = () => {
   const id = useId();
   // رقم السؤال المفتوح (null = كلها مغلقة)
   const [open, setOpen] = useState<number | null>(null);
+  const FAQS = useSiteData().faqs;
+  // بلا أسئلة: لا يظهر القسم
+  if (!FAQS.length) return null;
 
   return (
     <section className={`${SITE} py-12 sm:py-16`}>

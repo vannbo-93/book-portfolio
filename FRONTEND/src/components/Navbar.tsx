@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { SITE } from "../layout";
-import { books } from "../data/books";
-import { BRAND, CITY, EMAIL, NAV_LINKS } from "../data/site";
+import { BRAND, NAV_LINKS } from "../data/site";
+import { useSiteData } from "../data/siteData";
 import { MONO, useClock } from "../hooks/useClock";
 import { scrollToTop } from "../lib/scroll";
 
@@ -17,10 +17,10 @@ import { scrollToTop } from "../lib/scroll";
 // يختفي للأعلى حين تمرر إلى الأسفل، ويعود فور التمرير إلى الأعلى (وفي أعلى الصفحة يبقى ظاهرًا دائمًا).
 // الضغط على الاسم: يعيدك إلى الصفحة الرئيسية من أعلاها (وإن كنت فيها، يصعد بك إلى أعلاها بنعومة).
 
-const COLUMNS = [
+const columns = (worksCount: number) => [
   [
     { href: "/", label: "Home" },
-    { href: "/work", label: "Works", count: books.length }, // [3]: عدد الأعمال، يتحدث وحده من books.ts
+    { href: "/work", label: "Works", count: worksCount }, // [3]: عدد الأعمال المنشورة، يتحدث وحده
   ],
   [
     { href: "/about", label: "About" },
@@ -39,6 +39,9 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const clock = useClock();
+  const { books, settings } = useSiteData();
+  const { city: CITY, email: EMAIL } = settings;
+  const COLUMNS = columns(books.length);
 
   // مخفي؟ (يتغير مع اتجاه التمرير)
   const [hidden, setHidden] = useState(false);

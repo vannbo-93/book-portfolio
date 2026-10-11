@@ -8,8 +8,10 @@ import {
 } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
-import { AVAILABILITY } from "../data/site";
+import { useSiteData } from "../data/siteData";
+import { sized } from "../lib/image";
 import type { Service } from "../data/services";
+import type { ExperienceRow } from "../data/servicesPage";
 
 // القسم الثالث في صفحة الخدمات:
 //   1. EXPERIENCE: جدول الخبرة
@@ -19,13 +21,6 @@ import type { Service } from "../data/services";
 //
 // ظهور القسم: لا يظهر إلا حين يبدأ أعلى صورتي القسم السابق بالخروج من أعلى الشاشة (trigger)،
 // ثم يظهر تدريجيًا مع التمرير.
-
-interface ExperienceRow {
-  role: string;
-  type: string;
-  place: string;
-  years: string;
-}
 
 interface ServicesPracticeProps {
   left: string;
@@ -43,8 +38,8 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 const HEADING =
   "font-sans text-[clamp(2rem,3.4vw,4rem)] font-medium uppercase leading-[0.9] tracking-[-0.06em]";
 
-// صورة الخدمة بحجم أكبر: صور services.ts مطلوبة بمقاس 600×480 لصفوف الصفحة الرئيسية الصغيرة
-const large = (src: string) => src.replace("w=600&h=480", "w=1600&h=1000");
+// صورة الخدمة بحجم أكبر من صفوف الصفحة الرئيسية الصغيرة
+const large = (src: string) => sized(src, 1600);
 
 // بطاقة خدمة واحدة: تثبت في أعلى الشاشة، وحين تصعد البطاقة التالية فوقها تصغر وتبهت للخلف
 // (والتالية تغطي الجزء السفلي منها)
@@ -87,13 +82,15 @@ const ServiceCard = ({ service, index, next, ref }: ServiceCardProps) => {
             <p className="mt-5 max-w-md font-sans text-[15px] font-medium normal-case leading-snug tracking-normal">
               {service.description}
             </p>
-            <img
-              src={large(service.images[0])}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="mt-8 aspect-[16/10] max-h-[55vh] w-full bg-neutral-200 object-cover"
-            />
+            {service.images[0] && (
+              <img
+                src={large(service.images[0])}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="mt-8 aspect-[16/10] max-h-[55vh] w-full bg-neutral-200 object-cover"
+              />
+            )}
           </div>
         </div>
       </motion.div>
@@ -112,6 +109,7 @@ const ServicesPractice = ({
   trigger,
 }: ServicesPracticeProps) => {
   const reduce = useReducedMotion();
+  const AVAILABILITY = useSiteData().settings.availability;
   // مرجع لكل بطاقة: كل بطاقة تتابع صعود التي بعدها
   const cardRefs = useMemo(
     () => services.map(() => createRef<HTMLLIElement>()),

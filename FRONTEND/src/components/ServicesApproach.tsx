@@ -18,7 +18,7 @@ interface ServicesApproachProps {
   right: string;
   heading: string[];
   blocks: ApproachBlock[];
-  images: [Img, Img];
+  images: Img[];
   // مرجع لحاوية الصورتين: القسم التالي يبدأ بالظهور حين يصل أعلاها إلى أعلى الشاشة
   imagesRef?: Ref<HTMLDivElement>;
 }

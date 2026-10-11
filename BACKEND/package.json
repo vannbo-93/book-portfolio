@@ -6,7 +6,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "create-admin": "tsx src/scripts/createAdmin.ts"
+    "create-admin": "tsx src/scripts/createAdmin.ts",
+    "seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

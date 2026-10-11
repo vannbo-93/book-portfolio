@@ -3,14 +3,14 @@ import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
-import { EMAIL } from "../data/site";
-import { CONTACT_TEXT, TOPICS } from "../data/contact";
+import { CONTACT_TEXT, GENERAL_TOPIC } from "../data/contact";
+import { useSiteData } from "../data/siteData";
+import { api } from "../lib/api";
 
 // قسم التواصل: نموذج من أربعة حقول (الاسم، البريد، الموضوع، الرسالة) بخطوط سفلية فقط.
 //
-// الإرسال الآن: يفتح برنامج البريد عند الزائر برسالة جاهزة إلى EMAIL (من site.ts).
-// هذا مؤقت: كثير من الزوار ليس لديهم برنامج بريد مضبوط على أجهزتهم، فيضيع الطلب.
-// لاحقًا نربطه بخدمة تستقبل النموذج مباشرة (مثل Formspree أو Web3Forms) بتعديل الدالة send فقط.
+// الإرسال: إلى الخادم مباشرة (POST /api/contact)، فتُحفظ الرسالة وتظهر في لوحة التحكم،
+// ويصل المصمم إشعار بالبريد إن كان مفعّلًا. الزائر لا يحتاج برنامج بريد على جهازه.
 
 // شكل الحقل: بلا إطار، خط سفلي رمادي يصير أسود عند الكتابة
 const FIELD =
@@ -18,20 +18,33 @@ const FIELD =
 const LABEL = `${MONO} block font-medium`;
 
 const Contact = ({ id = "contact" }: { id?: string }) => {
-  const [sent, setSent] = useState(false);
+  const { services, settings } = useSiteData();
+  const EMAIL = settings.email;
+  // خيارات "الموضوع": أسماء الخدمات ثم "سؤال عام"
+  const TOPICS = [...services.map((s) => s.title), GENERAL_TOPIC];
+  // idle: لم يُرسل بعد. sending: جارٍ الإرسال. sent: وصل. error: فشل (وسببه في error)
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
+  const [error, setError] = useState("");
 
-  const send = (e: FormEvent<HTMLFormElement>) => {
+  const send = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const name = String(data.get("name") ?? "");
-    const email = String(data.get("email") ?? "");
-    const topic = String(data.get("topic") ?? "");
-    const message = String(data.get("message") ?? "");
-
-    const subject = `${topic || "Inquiry"} — ${name}`;
-    const body = `${message}\n\n${name}\n${email}`;
-    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+    if (status === "sending") return;
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form)) as Record<
+      string,
+      string
+    >;
+    setStatus("sending");
+    try {
+      await api("/api/contact", { method: "POST", body: JSON.stringify(data) });
+      form.reset();
+      setStatus("sent");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setStatus("error");
+    }
   };
 
   return (
@@ -54,6 +67,14 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
           </p>
 
           <form onSubmit={send} className="mt-14 flex flex-col gap-8 sm:mt-16">
+            {/* فخ للبرامج الآلية: مخفي عن الزوار وقارئات الشاشة، فلا يملؤه إلا برنامج */}
+            <input
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="absolute -left-[9999px] h-px w-px opacity-0"
+            />
             <label>
               <span className={LABEL}>Name</span>
               <input
@@ -121,25 +142,44 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
             <div className="flex flex-wrap items-center gap-6">
               <button
                 type="submit"
-                className={`${MONO} cursor-pointer font-medium underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-black`}>
-                [ Submit ]
+                disabled={status === "sending"}
+                className={`${MONO} cursor-pointer font-medium underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-black disabled:cursor-wait disabled:opacity-50`}>
+                {status === "sending" ? "[ Sending… ]" : "[ Submit ]"}
               </button>
 
-              {/* بعد الضغط: تذكير بأن الرسالة تُرسل من برنامج البريد، مع البريد مكتوبًا لمن لم يُفتح عنده شيء */}
-              <AnimatePresence>
-                {sent && (
+              {/* بعد الإرسال: تأكيد، أو سبب الفشل مع البريد مكتوبًا كبديل */}
+              <AnimatePresence mode="wait">
+                {status === "sent" && (
                   <motion.p
+                    key="sent"
                     role="status"
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     className={`${MONO} font-medium text-black/55`}>
-                    Your email app should open. If not, write to{" "}
-                    <a
-                      href={`mailto:${EMAIL}`}
-                      className="text-black underline underline-offset-[3px]">
-                      {EMAIL}
-                    </a>
+                    Thank you — your message was sent.
+                  </motion.p>
+                )}
+                {status === "error" && (
+                  <motion.p
+                    key="error"
+                    role="alert"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className={`${MONO} font-medium text-red-700`}>
+                    {error}.
+                    {EMAIL && (
+                      <>
+                        {" "}
+                        You can also write to{" "}
+                        <a
+                          href={`mailto:${EMAIL}`}
+                          className="text-black underline underline-offset-[3px]">
+                          {EMAIL}
+                        </a>
+                      </>
+                    )}
                   </motion.p>
                 )}
               </AnimatePresence>

@@ -61,3 +61,19 @@ export const deleteMedia = async (
   });
   return res.result === "ok";
 };
+
+// حذف عدة ملفات دون إيقاف الطلب إن فشل أحدها (يُسجل الخطأ فقط):
+// الكتاب حُذف أو عُدّل في قاعدة البيانات، وفشل تنظيف Cloudinary لا يجب أن يلغي ذلك
+export const deleteMediaMany = async (
+  publicIds: string[],
+  resourceType: ResourceType = "image",
+) => {
+  const ids = publicIds.filter(isOwnMedia);
+  const results = await Promise.allSettled(
+    ids.map((id) => deleteMedia(id, resourceType)),
+  );
+  results.forEach((r, i) => {
+    if (r.status === "rejected")
+      console.error(`✗ Cloudinary delete failed: ${ids[i]}`, r.reason);
+  });
+};

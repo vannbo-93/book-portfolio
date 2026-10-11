@@ -9,6 +9,8 @@ import { errorHandler, notFound } from "./middleware/error.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth.js";
 import uploadRoutes from "./routes/uploads.js";
+import bookRoutes from "./routes/books.js";
+import adminBookRoutes from "./routes/adminBooks.js";
 
 // تطبيق Express: الإعدادات والمسارات (بدون تشغيل الخادم، حتى يمكن اختباره وحده)
 const app = express();
@@ -30,6 +32,8 @@ app.use(cookieParser());
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/books", bookRoutes);
+app.use("/api/admin/books", adminBookRoutes);
 
 // رابط غير موجود، ثم معالجة كل الأخطاء (يجب أن يكونا آخر شيء)
 app.use(notFound);

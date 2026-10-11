@@ -20,7 +20,10 @@ export const api = async <T>(path: string, init?: RequestInit): Promise<T> => {
     credentials: "include",
     ...init,
     headers: {
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
+      // نص JSON فقط (الملفات المرفوعة FormData: المتصفح يضع نوعها بنفسه)
+      ...(typeof init?.body === "string"
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...init?.headers,
     },
   });

@@ -1,5 +1,3 @@
-/** @format */
-
 import "dotenv/config";
 import { z } from "zod";
 
@@ -9,10 +7,14 @@ import { z } from "zod";
 const schema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
-  CLIENT_URL: z.url().default("http://localhost:5173"),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  // روابط الواجهة المسموح لها بالاتصال (CORS)، مفصولة بفاصلة:
+  // https://ussainisawi.com,https://www.ussainisawi.com
+  CLIENT_URL: z
+    .string()
+    .default("http://localhost:5173")
+    .transform((v) => v.split(",").map((s) => s.trim().replace(/\/$/, "")).filter(Boolean))
+    .pipe(z.array(z.url()).min(1)),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   // مفتاح توقيع جلسات الأدمن: نص عشوائي طويل وسري (32 حرفًا على الأقل). من يعرفه يستطيع انتحال الأدمن
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   // مدة الجلسة قبل أن يُطلب تسجيل الدخول من جديد (بالأيام)
@@ -35,8 +37,7 @@ const schema = z.object({
 const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
   console.error("✗ Invalid environment variables:");
-  for (const issue of parsed.error.issues)
-    console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
+  for (const issue of parsed.error.issues) console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
   process.exit(1);
 }
 

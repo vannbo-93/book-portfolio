@@ -1,6 +1,6 @@
 /** @format */
 import { useState, type FormEvent } from "react";
-import { api } from "../../lib/api";
+import { api, API_URL } from "../../lib/api";
 import { useAuth } from "../auth";
 import PageHeader from "../PageHeader";
 import {
@@ -106,6 +106,18 @@ const Account = () => {
           {busy ? "Saving…" : "Change password"}
         </button>
       </form>
+
+      <section className={`${CARD} mt-6 flex max-w-md flex-col gap-3`}>
+        <p className={MONO_SM}>Backup</p>
+        <p className="text-sm text-black/60">
+          One file with all books, sections, settings and messages. Download one
+          every month and after big changes, and keep it somewhere safe (Google
+          Drive, email). Images stay on Cloudinary.
+        </p>
+        <a href={`${API_URL}/api/admin/backup`} className={BUTTON_GHOST}>
+          Download backup
+        </a>
+      </section>
     </>
   );
 };

@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "create-admin": "tsx src/scripts/createAdmin.ts",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/scripts/seed.ts",
+    "restore": "tsx src/scripts/restore.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -34,5 +35,8 @@
     "@types/nodemailer": "^8.0.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

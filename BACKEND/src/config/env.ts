@@ -23,6 +23,13 @@ const schema = z.object({
   CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
   // المجلد الذي تُرفع إليه كل ملفات الموقع داخل حسابك على Cloudinary
   CLOUDINARY_FOLDER: z.string().min(1).default("book-portfolio"),
+  // إشعار بريدي عند وصول رسالة من نموذج التواصل (اختياري: بدونه تُحفظ الرسائل في لوحة التحكم فقط)
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(465),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  // البريد الذي يصله الإشعار (بريد المصمم)
+  NOTIFY_EMAIL: z.union([z.email(), z.literal("")]).optional(),
 });
 
 const parsed = schema.safeParse(process.env);

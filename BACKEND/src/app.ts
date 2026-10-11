@@ -13,6 +13,8 @@ import bookRoutes from "./routes/books.js";
 import adminBookRoutes from "./routes/adminBooks.js";
 import contentRoutes from "./routes/content.js";
 import adminContentRoutes from "./routes/adminContent.js";
+import messageRoutes from "./routes/messages.js";
+import adminMessageRoutes from "./routes/adminMessages.js";
 
 // تطبيق Express: الإعدادات والمسارات (بدون تشغيل الخادم، حتى يمكن اختباره وحده)
 const app = express();
@@ -36,7 +38,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/admin/books", adminBookRoutes);
+app.use("/api/admin/messages", adminMessageRoutes);
 app.use("/api/admin", adminContentRoutes);
+app.use("/api/contact", messageRoutes);
 app.use("/api", contentRoutes);
 
 // رابط غير موجود، ثم معالجة كل الأخطاء (يجب أن يكونا آخر شيء)

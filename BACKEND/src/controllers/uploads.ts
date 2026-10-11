@@ -16,6 +16,7 @@ const SUBFOLDERS = [
   "books",
   "covers",
   "testimonials",
+  "services",
   "videos",
   "misc",
 ] as const;

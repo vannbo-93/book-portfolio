@@ -77,3 +77,42 @@ export const deleteMediaMany = async (
       console.error(`✗ Cloudinary delete failed: ${ids[i]}`, r.reason);
   });
 };
+
+// كل الملفات داخل أي كائن (كتاب، شهادة، إعدادات...): يبحث عن كل حقل publicId أينما كان
+export interface MediaRef {
+  publicId: string;
+  resourceType: ResourceType;
+}
+export const collectMedia = (
+  value: unknown,
+  found: MediaRef[] = [],
+): MediaRef[] => {
+  if (Array.isArray(value)) value.forEach((v) => collectMedia(v, found));
+  else if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.publicId === "string") {
+      found.push({
+        publicId: obj.publicId,
+        resourceType: obj.resourceType === "video" ? "video" : "image",
+      });
+    } else Object.values(obj).forEach((v) => collectMedia(v, found));
+  }
+  return found;
+};
+
+// يحذف من Cloudinary الملفات التي كانت في before ولم تعد في after (بعد تعديل أو حذف)
+export const deleteRemovedMedia = async (
+  before: unknown,
+  after: unknown = null,
+) => {
+  const kept = new Set(collectMedia(after).map((m) => m.publicId));
+  const removed = collectMedia(before).filter((m) => !kept.has(m.publicId));
+  await Promise.all(
+    (["image", "video"] as const).map((type) =>
+      deleteMediaMany(
+        removed.filter((m) => m.resourceType === type).map((m) => m.publicId),
+        type,
+      ),
+    ),
+  );
+};

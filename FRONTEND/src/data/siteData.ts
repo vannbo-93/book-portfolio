@@ -156,11 +156,21 @@ export const loadSiteData = async (): Promise<SiteData> => {
   ]);
 
   const books = apiBooks.map(toBook).filter((b): b is Book => b !== null);
+  // رابط الغلاف الحصري: صفحة الكتاب إن طابق bookSlug كتابًا منشورًا (بالـ slug أو بالعنوان)،
+  // وإلا صفحة Works. هكذا لا يقود slug مكتوب خطأً أو كتاب في المسودة إلى صفحة 404
+  const key = (v: string) => v.trim().toLowerCase();
+  const coverHref = (bookSlug?: string) => {
+    if (!bookSlug) return "/work";
+    const book = books.find(
+      (b) => key(b.slug) === key(bookSlug) || key(b.title) === key(bookSlug),
+    );
+    return book ? `/books/${book.slug}` : "/work";
+  };
   const covers: LatestItem[] = content.covers.length
     ? content.covers.map((c) => ({
         src: sized(c.image.url, 900),
         title: c.title,
-        href: c.bookSlug ? `/books/${c.bookSlug}` : "/work",
+        href: coverHref(c.bookSlug),
         format: c.format ?? "standard",
       }))
     : coversFromBooks(books);

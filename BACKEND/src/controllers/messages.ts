@@ -52,7 +52,7 @@ export const markRead: RequestHandler = async (req, res) => {
   const message = await Message.findByIdAndUpdate(
     req.params.id,
     { read },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
   if (!message) throw new AppError(404, "Message not found");
   res.json({ message });

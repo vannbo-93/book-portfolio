@@ -19,20 +19,31 @@ import type { Book } from "../types";
 import { SITE } from "../layout";
 import { scrollToElement } from "../lib/scroll";
 
-// صفحات الكتاب: كوفر كل كتاب (رابط إلى صفحته) ثم أول صفحاته المزدوجة.
-// الكوفر وحده رابط، حتى لا يمر مستخدم لوحة المفاتيح على 12 رابطًا مكررًا
-const PAGES_PER_BOOK = 4;
-const fanItems = (books: Book[]): FanItem[] =>
-  books.flatMap((book) => [
-    {
+// صفحات الكتاب الدوّار: أغلفة فقط (بلا صفحات مزدوجة).
+// أغلفة الكتب المنشورة أولًا (كل غلاف رابط إلى صفحة كتابه)، ثم الأغلفة الحصرية
+// من قسم Covers في لوحة التحكم (غير المرتبطة بكتاب: رابطها /work).
+// إن قلّت الأغلفة عن MIN_PAGES تتكرر حتى يبدو الكتاب ممتلئًا؛ النسخ المكررة ليست روابط
+// حتى لا يمر مستخدم لوحة المفاتيح على الرابط نفسه مرتين.
+const MIN_PAGES = 12;
+const fanItems = (books: Book[], covers: LatestItem[]): FanItem[] => {
+  const unique: FanItem[] = [
+    ...books.map((book) => ({
       src: book.cover.src,
       alt: book.cover.alt || book.title,
       href: `/books/${book.slug}`,
-    },
-    ...book.spreads
-      .slice(0, PAGES_PER_BOOK - 1)
-      .map((s) => ({ src: s.src, alt: "" })),
-  ]);
+    })),
+    ...covers
+      .filter((c) => c.href === "/work")
+      .map((c) => ({ src: c.src, alt: c.title })),
+  ];
+  if (!unique.length) return [];
+  const count = Math.max(MIN_PAGES, unique.length);
+  return Array.from({ length: count }, (_, i) =>
+    i < unique.length
+      ? unique[i]
+      : { src: unique[i % unique.length].src, alt: "" },
+  );
+};
 
 // آخر الأعمال: غلاف كل كتاب بمقاسه الحقيقي (format من لوحة التحكم)، ثم صفحاته المزدوجة (عريضة: landscape)،
 // بالتناوب بين الكتب: غلاف الأول، غلاف الثاني...، ثم أول صفحة من كل كتاب... حتى 10 عناصر
@@ -70,7 +81,7 @@ const Home = () => {
       <h1 className="sr-only">{BRAND} — Book design portfolio</h1>
 
       <div className={SITE}>
-        <BookFan items={fanItems(books)}>
+        <BookFan items={fanItems(books, covers)}>
           <button
             type="button"
             onClick={scrollToLatest}
@@ -92,12 +103,12 @@ const Home = () => {
         خارج حدود الموقع حتى يغطي اللوحان عرض الشاشة كله */}
       <StackReveal
         next={<Advantage />}
-        left={stackLeft ? <LoopVideo src={stackLeft} /> : undefined}
-        right={stackRight ? <LoopVideo src={stackRight} /> : undefined}>
+        left={stackLeft ? <LoopVideo {...stackLeft} /> : undefined}
+        right={stackRight ? <LoopVideo {...stackRight} /> : undefined}>
         <WhatIDo />
       </StackReveal>
       {/* المربع الذي يكبر حتى يغطي الشاشة: بداخله الفيديو (reel) إن رُفع، وإلا يبقى أسود */}
-      <MediaExpand>{reel ? <LoopVideo src={reel} /> : undefined}</MediaExpand>
+      <MediaExpand>{reel ? <LoopVideo {...reel} /> : undefined}</MediaExpand>
 
       {/* الأسئلة الشائعة */}
       <FAQ />

@@ -1,7 +1,7 @@
 /** @format */
 import { createContext, useContext } from "react";
 import { api } from "../lib/api";
-import { sized } from "../lib/image";
+import { sized, videoPoster, videoSized } from "../lib/image";
 import type { Book, Img } from "../types";
 import type { FormatKey, LatestItem } from "./formats";
 import type { Faq } from "./faq";
@@ -25,7 +25,13 @@ export interface Settings {
   availability: string;
   socials: NavItem[];
   // روابط الفيديوهات (فارغ = لا فيديو، يبقى المربع الأسود)
-  videos: { reel?: string; stackLeft?: string; stackRight?: string };
+  videos: { reel?: Video; stackLeft?: Video; stackRight?: Video };
+}
+
+// فيديو جاهز للعرض: الرابط المضغوط + صورة أول لقطة
+export interface Video {
+  src: string;
+  poster?: string;
 }
 
 export interface SiteData {
@@ -96,6 +102,11 @@ interface ApiSettings {
 }
 
 // ===== التحويل إلى الشكل الذي تستعمله المكونات =====
+const toVideo = (m: ApiMedia | null, width: number): Video | undefined =>
+  m
+    ? { src: videoSized(m.url, width), poster: videoPoster(m.url, width) }
+    : undefined;
+
 const toImg = (m: ApiMedia, width: number): Img => ({
   src: sized(m.url, width),
   width: m.width,
@@ -180,10 +191,11 @@ export const loadSiteData = async (): Promise<SiteData> => {
       available: s.available,
       availability: s.available ? s.availableText : s.busyText,
       socials: s.socials,
+      // المربع الكبير يملأ الشاشة: 1920px. اللوحتان نصف الشاشة تقريبًا: 1080px
       videos: {
-        reel: s.videos.reel?.url,
-        stackLeft: s.videos.stackLeft?.url,
-        stackRight: s.videos.stackRight?.url,
+        reel: toVideo(s.videos.reel, 1920),
+        stackLeft: toVideo(s.videos.stackLeft, 1080),
+        stackRight: toVideo(s.videos.stackRight, 1080),
       },
     },
   };

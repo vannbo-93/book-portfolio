@@ -25,17 +25,24 @@ import { scrollToElement } from "../lib/scroll";
 // إن قلّت الأغلفة عن MIN_PAGES تتكرر حتى يبدو الكتاب ممتلئًا؛ النسخ المكررة ليست روابط
 // حتى لا يمر مستخدم لوحة المفاتيح على الرابط نفسه مرتين.
 const MIN_PAGES = 12;
-const fanItems = (books: Book[], covers: LatestItem[]): FanItem[] => {
-  const unique: FanItem[] = [
-    ...books.map((book) => ({
-      src: book.cover.src,
-      alt: book.cover.alt || book.title,
-      href: `/books/${book.slug}`,
-    })),
-    ...covers
-      .filter((c) => c.href === "/work")
-      .map((c) => ({ src: c.src, alt: c.title })),
-  ];
+const fanItems = (
+  books: Book[],
+  covers: LatestItem[],
+  chosen: { src: string; alt: string }[],
+): FanItem[] => {
+  // أغلفة اختارها المصمم خصيصًا للكتاب الدوّار (لوحة التحكم ← Settings): لها الأولوية وحدها
+  const unique: FanItem[] = chosen.length
+    ? chosen.map((c) => ({ src: c.src, alt: c.alt }))
+    : [
+        ...books.map((book) => ({
+          src: book.cover.src,
+          alt: book.cover.alt || book.title,
+          href: `/books/${book.slug}`,
+        })),
+        ...covers
+          .filter((c) => c.href === "/work")
+          .map((c) => ({ src: c.src, alt: c.title })),
+      ];
   if (!unique.length) return [];
   const count = Math.max(MIN_PAGES, unique.length);
   return Array.from({ length: count }, (_, i) =>
@@ -81,7 +88,7 @@ const Home = () => {
       <h1 className="sr-only">{BRAND} — Book design portfolio</h1>
 
       <div className={SITE}>
-        <BookFan items={fanItems(books, covers)}>
+        <BookFan items={fanItems(books, covers, settings.fanPages)}>
           <button
             type="button"
             onClick={scrollToLatest}

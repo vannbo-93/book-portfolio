@@ -58,4 +58,5 @@ export interface SettingsDoc {
   busyText: string;
   socials: { label: string; href: string }[];
   videos: Record<"reel" | "stackLeft" | "stackRight", Media | null>;
+  fanPages: Media[];
 }

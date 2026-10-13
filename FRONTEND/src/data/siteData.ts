@@ -26,6 +26,8 @@ export interface Settings {
   socials: NavItem[];
   // روابط الفيديوهات (فارغ = لا فيديو، يبقى المربع الأسود)
   videos: { reel?: Video; stackLeft?: Video; stackRight?: Video };
+  // أغلفة الكتاب الدوّار المختارة من لوحة التحكم (فارغة = أغلفة الكتب)
+  fanPages: { src: string; alt: string }[];
 }
 
 // فيديو جاهز للعرض: الرابط المضغوط + صورة أول لقطة
@@ -99,6 +101,7 @@ interface ApiSettings {
   busyText: string;
   socials: { label: string; href: string }[];
   videos: Record<"reel" | "stackLeft" | "stackRight", ApiMedia | null>;
+  fanPages?: ApiMedia[];
 }
 
 // ===== التحويل إلى الشكل الذي تستعمله المكونات =====
@@ -211,6 +214,10 @@ export const loadSiteData = async (): Promise<SiteData> => {
         stackLeft: toVideo(s.videos.stackLeft, isPhone() ? 720 : 1080),
         stackRight: toVideo(s.videos.stackRight, isPhone() ? 720 : 1080),
       },
+      fanPages: (s.fanPages ?? []).map((m) => ({
+        src: sized(m.url, 900),
+        alt: m.alt ?? "",
+      })),
     },
   };
 };

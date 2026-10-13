@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { api } from "../../lib/api";
 import { useLoad } from "../useLoad";
 import { usePendingUploads } from "../uploads";
-import { MediaField } from "../MediaField";
+import { MediaField, MediaListField } from "../MediaField";
 import PageHeader from "../PageHeader";
 import {
   BUTTON,
@@ -16,7 +16,7 @@ import {
 } from "../ui";
 import type { Media, SettingsDoc } from "../types";
 
-// إعدادات الموقع: معلومات التواصل، والساعة، وحالة التوفر، والحسابات، والفيديوهات
+// إعدادات الموقع: معلومات التواصل، والساعة، وحالة التوفر، والحسابات، وأغلفة الكتاب الدوّار، والفيديوهات
 
 const VIDEOS = [
   {
@@ -100,7 +100,7 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
   return (
     <form onSubmit={save}>
       <PageHeader
-        title="Settings & videos"
+        title="Settings & media"
         note="Shown in the navbar, footer and contact page."
       />
 
@@ -197,6 +197,18 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
             className={`${BUTTON_GHOST} mt-3`}>
             + Add account
           </button>
+        </section>
+
+        <section className={CARD}>
+          <MediaListField
+            label="Home — 3D book covers"
+            hint="The spinning book at the top of the home page. Upload the covers you want there (up to 12), drag to reorder. Separate from books and other covers. Empty = the published books' covers are used."
+            value={s.fanPages ?? []}
+            onChange={(v) => set("fanPages", v)}
+            folder="covers"
+            pending={pending}
+            max={12}
+          />
         </section>
 
         <section className={`${CARD} flex flex-col gap-6`}>

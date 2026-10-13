@@ -164,12 +164,17 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* اسم الموقع ضخمًا بعرض الصفحة: نفس خط الاسم في الناف بار */}
-        <p
+        {/* اسم الموقع ضخمًا بعرض الصفحة: نفس خط الاسم في الناف بار.
+            الضغط عليه يعيد لأعلى الصفحة (اختصار للماوس فقط: زر "Back to top" يبقى
+            هو الزر الرسمي للوحة المفاتيح وقارئ الشاشة، لذلك هذا الزر مخفي عنهما) */}
+        <button
+          type="button"
           aria-hidden="true"
-          className="mt-20 select-none text-center font-sans text-[clamp(4rem,21vw,19rem)] font-medium leading-[0.8] tracking-[-0.07em]">
+          tabIndex={-1}
+          onClick={() => scrollToTop()}
+          className="mt-20 block w-full cursor-pointer select-none text-center font-sans text-[clamp(4rem,21vw,19rem)] font-medium leading-[0.8] tracking-[-0.07em] transition-opacity duration-300 hover:opacity-70">
           {BRAND}
-        </p>
+        </button>
 
         <div
           className={`${MONO} mt-8 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between`}>

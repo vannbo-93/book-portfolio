@@ -172,7 +172,7 @@ const Footer = () => {
           aria-hidden="true"
           tabIndex={-1}
           onClick={() => scrollToTop()}
-          className="mt-20 block w-full cursor-pointer select-none text-center font-sans text-[clamp(4rem,21vw,19rem)] font-medium leading-[0.8] tracking-[-0.07em] transition-opacity duration-300 hover:opacity-70">
+          className="mt-20 block w-full cursor-pointer select-none text-center font-sans text-[clamp(4rem,21vw,19rem)] font-medium leading-[0.8] tracking-[-0.07em] transition-opacity duration-300 hover:opacity-10">
           {BRAND}
         </button>
 

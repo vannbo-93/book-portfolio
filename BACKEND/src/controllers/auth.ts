@@ -1,5 +1,3 @@
-/** @format */
-
 import type { RequestHandler } from "express";
 import { z } from "zod";
 import { Admin, checkPassword, hashPassword } from "../models/Admin.js";
@@ -19,7 +17,7 @@ export const login: RequestHandler = async (req, res) => {
   if (!admin || !(await checkPassword(password, admin.passwordHash))) {
     throw new AppError(401, "Invalid email or password");
   }
-  res.cookie(COOKIE_NAME, signToken(admin.id, admin.email), cookieOptions());
+  res.cookie(COOKIE_NAME, signToken(admin.id, admin.email, admin.sessionVersion ?? 0), cookieOptions());
   res.json({ admin: { id: admin.id, email: admin.email } });
 };
 
@@ -40,7 +38,8 @@ const passwordSchema = z.object({
   newPassword: z.string().min(10, "Password must be at least 10 characters"),
 });
 
-// PATCH /api/auth/password: تغيير كلمة السر (يتطلب الحالية)
+// PATCH /api/auth/password: تغيير كلمة السر (يتطلب الحالية).
+// يُخرج كل الأجهزة الأخرى فورًا (sessionVersion + 1)، ويبقى هذا الجهاز مسجلًا بجلسة جديدة
 export const changePassword: RequestHandler = async (req, res) => {
   const { currentPassword, newPassword } = passwordSchema.parse(req.body);
   const admin = await Admin.findById(req.admin!.id).select("+passwordHash");
@@ -48,6 +47,8 @@ export const changePassword: RequestHandler = async (req, res) => {
     throw new AppError(401, "Current password is incorrect");
   }
   admin.passwordHash = await hashPassword(newPassword);
+  admin.sessionVersion = (admin.sessionVersion ?? 0) + 1;
   await admin.save();
+  res.cookie(COOKIE_NAME, signToken(admin.id, admin.email, admin.sessionVersion), cookieOptions());
   res.json({ ok: true });
 };

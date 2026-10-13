@@ -1,5 +1,3 @@
-/** @format */
-
 import { Schema, model, type InferSchemaType } from "mongoose";
 import bcrypt from "bcryptjs";
 
@@ -7,16 +5,13 @@ import bcrypt from "bcryptjs";
 // يُنشأ الحساب من الطرفية فقط بالأمر npm run create-admin
 const adminSchema = new Schema(
   {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     // كلمة السر لا تُحفظ أبدًا كما هي، بل بصمتها المشفرة (bcrypt).
     // select: false: لا تُرسل مع أي استعلام إلا إن طُلبت صراحة
     passwordHash: { type: String, required: true, select: false },
+    // رقم نسخة الجلسات: يُكتب داخل كل جلسة عند الدخول، ويزيد بواحد عند تغيير كلمة السر.
+    // كل جلسة برقم أقدم تُرفض فورًا، فيخرج كل جهاز قديم (ومنها أي جلسة مسروقة)
+    sessionVersion: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
@@ -26,7 +21,6 @@ export type AdminDoc = InferSchemaType<typeof adminSchema>;
 // قوة التشفير: كل زيادة بواحد تضاعف الوقت. 12 متوازن (نحو ربع ثانية)
 const ROUNDS = 12;
 export const hashPassword = (password: string) => bcrypt.hash(password, ROUNDS);
-export const checkPassword = (password: string, hash: string) =>
-  bcrypt.compare(password, hash);
+export const checkPassword = (password: string, hash: string) => bcrypt.compare(password, hash);
 
 export const Admin = model("Admin", adminSchema);

@@ -1,5 +1,3 @@
-/** @format */
-
 import { createInterface } from "node:readline";
 import mongoose from "mongoose";
 import { connectDB } from "../config/db.js";
@@ -13,15 +11,8 @@ import { Admin, hashPassword } from "../models/Admin.js";
 // سؤال بإدخال مخفي (لا تُعرض الأحرف المكتوبة)
 const askHidden = (question: string) =>
   new Promise<string>((resolve) => {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: true,
-    });
-    const output = rl as unknown as {
-      _writeToOutput: (s: string) => void;
-      output: NodeJS.WriteStream;
-    };
+    const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+    const output = rl as unknown as { _writeToOutput: (s: string) => void; output: NodeJS.WriteStream };
     let muted = false;
     output._writeToOutput = (s: string) => {
       if (!muted) output.output.write(s);
@@ -55,8 +46,10 @@ const passwordHash = await hashPassword(password);
 const existing = await Admin.findOne({ email: email.toLowerCase().trim() });
 if (existing) {
   existing.passwordHash = passwordHash;
+  // كلمة سر جديدة = خروج كل الأجهزة المسجلة (مفيد إن نسيت كلمة السر أو شككت في سرقتها)
+  existing.sessionVersion = (existing.sessionVersion ?? 0) + 1;
   await existing.save();
-  console.log(`✓ Password updated for ${existing.email}`);
+  console.log(`✓ Password updated for ${existing.email} (all devices logged out)`);
 } else {
   const admin = await Admin.create({ email, passwordHash });
   console.log(`✓ Admin created: ${admin.email}`);

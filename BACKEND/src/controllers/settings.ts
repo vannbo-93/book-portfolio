@@ -1,5 +1,3 @@
-/** @format */
-
 import type { RequestHandler } from "express";
 import { z } from "zod";
 import { Settings } from "../models/Settings.js";
@@ -7,8 +5,7 @@ import { mediaInput } from "../lib/mediaInput.js";
 import { deleteRemovedMedia } from "../services/media.js";
 
 // المستند الوحيد للإعدادات: يُنشأ بالقيم الافتراضية أول مرة يُطلب فيها
-const getSettings = async () =>
-  (await Settings.findOne()) ?? (await Settings.create({}));
+const getSettings = async () => (await Settings.findOne()) ?? (await Settings.create({}));
 
 // المنطقة الزمنية يجب أن يعرفها المتصفح، وإلا تتعطل الساعة في الناف بار
 const isTimezone = (tz: string) => {
@@ -29,21 +26,13 @@ const updateSchema = z
     location: z.string().trim().max(150),
     responseTime: z.string().trim().max(100),
     city: z.string().trim().max(100),
-    timezone: z
-      .string()
-      .trim()
-      .refine(isTimezone, "Unknown timezone (example: Africa/Casablanca)"),
+    timezone: z.string().trim().refine(isTimezone, "Unknown timezone (example: Africa/Casablanca)"),
     available: z.boolean(),
     availableText: z.string().trim().max(100),
     busyText: z.string().trim().max(100),
-    socials: z
-      .array(
-        z.object({ label: z.string().trim().min(1).max(40), href: z.url() }),
-      )
-      .max(12),
-    videos: z
-      .object({ reel: video, stackLeft: video, stackRight: video })
-      .partial(),
+    socials: z.array(z.object({ label: z.string().trim().min(1).max(40), href: z.url() })).max(12),
+    videos: z.object({ reel: video, stackLeft: video, stackRight: video }).partial(),
+    fanPages: z.array(mediaInput("image")).max(12, "The 3D book takes 12 covers at most"),
   })
   .partial()
   .strict();
@@ -65,8 +54,7 @@ export const update: RequestHandler = async (req, res) => {
   const before = settings.toObject();
   settings.set(data);
   // الفيديوهات: يُغيَّر المرسل منها فقط
-  for (const [key, value] of Object.entries(videos ?? {}))
-    settings.set(`videos.${key}`, value);
+  for (const [key, value] of Object.entries(videos ?? {})) settings.set(`videos.${key}`, value);
   await settings.save();
   await deleteRemovedMedia(before, settings.toObject());
   res.json({ settings: toPublic(settings) });

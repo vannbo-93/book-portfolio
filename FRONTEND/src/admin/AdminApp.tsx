@@ -9,6 +9,7 @@ import Books from "./pages/Books";
 import BookEditor from "./pages/BookEditor";
 import ContentList from "./pages/ContentList";
 import Settings from "./pages/Settings";
+import FanCovers from "./pages/FanCovers";
 import Messages from "./pages/Messages";
 import Account from "./pages/Account";
 import { MONO_SM } from "./ui";
@@ -52,6 +53,7 @@ const AdminApp = () => {
               <Route path="books" element={<Books />} />
               <Route path="books/:id" element={<BookEditor />} />
               <Route path="content/:type" element={<ContentList />} />
+              <Route path="fan" element={<FanCovers />} />
               <Route path="settings" element={<Settings />} />
               <Route path="messages" element={<Messages />} />
               <Route path="account" element={<Account />} />

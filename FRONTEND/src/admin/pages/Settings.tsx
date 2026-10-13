@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { api } from "../../lib/api";
 import { useLoad } from "../useLoad";
 import { usePendingUploads } from "../uploads";
-import { MediaField, MediaListField } from "../MediaField";
+import { MediaField } from "../MediaField";
 import PageHeader from "../PageHeader";
 import {
   BUTTON,
@@ -16,7 +16,8 @@ import {
 } from "../ui";
 import type { Media, SettingsDoc } from "../types";
 
-// إعدادات الموقع: معلومات التواصل، والساعة، وحالة التوفر، والحسابات، وأغلفة الكتاب الدوّار، والفيديوهات
+// إعدادات الموقع: معلومات التواصل، والساعة، وحالة التوفر، والحسابات، والفيديوهات.
+// أغلفة الكتاب الدوّار لها صفحتها الخاصة (FanCovers.tsx)
 
 const VIDEOS = [
   {
@@ -35,6 +36,12 @@ const VIDEOS = [
     hint: "Rises second over “What I do”.",
   },
 ] as const;
+
+const withoutFan = (s: SettingsDoc) => {
+  const rest: Partial<SettingsDoc> = { ...s };
+  delete rest.fanPages;
+  return rest;
+};
 
 const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
   const pending = usePendingUploads();
@@ -58,8 +65,9 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
         {
           method: "PATCH",
           // الحسابات الفارغة لا تُرسل
+          // fanPages لا تُرسل من هنا: صفحتها مستقلة، فلا تكتب هذه الصفحة فوق تعديلاتها
           body: JSON.stringify({
-            ...s,
+            ...withoutFan(s),
             socials: s.socials.filter((x) => x.label.trim() && x.href.trim()),
           }),
         },
@@ -100,7 +108,7 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
   return (
     <form onSubmit={save}>
       <PageHeader
-        title="Settings & media"
+        title="Settings & videos"
         note="Shown in the navbar, footer and contact page."
       />
 
@@ -197,18 +205,6 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
             className={`${BUTTON_GHOST} mt-3`}>
             + Add account
           </button>
-        </section>
-
-        <section className={CARD}>
-          <MediaListField
-            label="Home — 3D book covers"
-            hint="The spinning book at the top of the home page. Upload the covers you want there (up to 12), drag to reorder. Separate from books and other covers. Empty = the published books' covers are used."
-            value={s.fanPages ?? []}
-            onChange={(v) => set("fanPages", v)}
-            folder="covers"
-            pending={pending}
-            max={12}
-          />
         </section>
 
         <section className={`${CARD} flex flex-col gap-6`}>

@@ -11,6 +11,7 @@ import { MONO_SM } from "./ui";
 
 const LINKS = [
   { to: "/admin/books", label: "Books" },
+  { to: "/admin/fan", label: "3D book (home)" },
   { to: "/admin/content/covers", label: "Exclusive covers" },
   { to: "/admin/content/testimonials", label: "Testimonials" },
   { to: "/admin/content/faqs", label: "FAQ" },

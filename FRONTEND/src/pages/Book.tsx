@@ -95,6 +95,7 @@ const Book = () => {
         <section
           aria-label="Spreads"
           className="mx-auto mt-24 grid w-full max-w-6xl gap-10 sm:mt-32 sm:gap-16">
+          {/* ظل خفيف + خط رفيع شبه شفاف حول كل صفحة: الصفحات البيضاء تظهر حدودها على خلفية الموقع البيضاء */}
           {book.spreads.map((spread, i) => (
             <motion.figure key={spread.src} {...reveal}>
               <img
@@ -104,7 +105,7 @@ const Book = () => {
                 height={spread.height}
                 loading="lazy"
                 decoding="async"
-                className="w-full rounded-[4px] bg-neutral-200 object-cover"
+                className="w-full rounded-[4px] bg-neutral-200 object-cover shadow-[0_2px_6px_rgba(0,0,0,0.06),0_24px_48px_-24px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]"
                 style={{ aspectRatio: `${spread.width} / ${spread.height}` }}
               />
               <figcaption className={`${MONO} mt-3 text-black/40`}>

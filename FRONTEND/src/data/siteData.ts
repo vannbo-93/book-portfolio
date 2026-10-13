@@ -102,6 +102,10 @@ interface ApiSettings {
 }
 
 // ===== التحويل إلى الشكل الذي تستعمله المكونات =====
+// الهاتف لا يحتاج فيديو بدقة الحاسوب: فك ترميزه أثقل على المعالج (فيتقطع أثناء التمرير)
+// وتنزيله أبطأ. مقاسان ثابتان فقط (لا مقاس لكل جهاز)، حتى يجهّز Cloudinary كل نسخة مرة واحدة
+const isPhone = () => typeof window !== "undefined" && window.innerWidth < 768;
+
 const toVideo = (m: ApiMedia | null, width: number): Video | undefined =>
   m
     ? { src: videoSized(m.url, width), poster: videoPoster(m.url, width) }
@@ -201,11 +205,11 @@ export const loadSiteData = async (): Promise<SiteData> => {
       available: s.available,
       availability: s.available ? s.availableText : s.busyText,
       socials: s.socials,
-      // المربع الكبير يملأ الشاشة: 1920px. اللوحتان نصف الشاشة تقريبًا: 1080px
+      // المربع الكبير يملأ الشاشة: 1920px (الهاتف 1080). اللوحتان نصف الشاشة: 1080px (الهاتف 720)
       videos: {
-        reel: toVideo(s.videos.reel, 1920),
-        stackLeft: toVideo(s.videos.stackLeft, 1080),
-        stackRight: toVideo(s.videos.stackRight, 1080),
+        reel: toVideo(s.videos.reel, isPhone() ? 1080 : 1920),
+        stackLeft: toVideo(s.videos.stackLeft, isPhone() ? 720 : 1080),
+        stackRight: toVideo(s.videos.stackRight, isPhone() ? 720 : 1080),
       },
     },
   };

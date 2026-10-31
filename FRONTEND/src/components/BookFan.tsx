@@ -47,8 +47,10 @@ interface BookFanProps {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// المسافة بين حافة كل صفحة ومحور الدوران (كعب الكتاب)، بالبكسل
-const SPINE_GAP = 2;
+// المسافة بين حافة كل صفحة ومحور الدوران (كعب الكتاب): نسبة من عرض الصفحة، فتكبر وتصغر معها.
+// كلما زادت، ابتعدت الصفحات عن بعضها في منتصف الكتاب (فراغ صغير بينها بدل أن تلتصق عند الكعب).
+// المسافة بين صفحتين متجاورتين عند الكعب ≈ هذه القيمة × زاوية ما بينهما (30° لـ 12 صفحة ≈ نصفها)
+const SPINE_GAP = "calc(var(--page-w) * 0.1)";
 
 // وجه صفحة: مخفي حين يكون ظهره للكاميرا، هو وكل ما بداخله (مع بادئة -webkit- لـ Safari)
 const FACE =
@@ -95,10 +97,10 @@ const Page = ({
     <motion.div
       className="absolute top-1/2 h-[var(--page-h)] w-[var(--page-w)]"
       style={{
-        left: `calc(50% + ${SPINE_GAP}px)`,
+        left: `calc(50% + ${SPINE_GAP})`,
         rotateY,
         y: "-50%",
-        transformOrigin: `${-SPINE_GAP}px 50%`,
+        transformOrigin: `calc(-1 * ${SPINE_GAP}) 50%`,
         transformStyle: "preserve-3d",
       }}>
       {/* الوجهان الأمامي والخلفي يفصل بينهما 1px في العمق (translateZ).

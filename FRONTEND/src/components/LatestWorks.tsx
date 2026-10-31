@@ -97,7 +97,7 @@ const LatestWorks = ({
               onPointerEnter={onEnter}
               onPointerLeave={onLeave}
               aria-label={`${item.title}, view project`}
-              title={`${item.title} — ${FORMATS[item.format].label}`}
+              title={item.title}
               className="group block [@media(hover:hover)]:cursor-none focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-black">
               {/* كل الأغلفة بعرض العمود نفسه، والارتفاع وحده حسب نسبة مقاس الكتاب:
                   الأفقي قصير، والمربع متوسط، وكتاب الجيب أطول.
@@ -114,17 +114,13 @@ const LatestWorks = ({
                   className="w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05] motion-reduce:transition-none"
                 />
               </div>
-              {/* رقم يسارًا واسم يمينًا، وتحتهما المقاس. تبهت مع الأغلفة الأخرى.
+              {/* رقم يسارًا واسم يمينًا. تبهت مع الأغلفة الأخرى.
                   في الأغلفة الضيقة (كتاب الجيب) يُقص الاسم الطويل بـ "…"، والاسم كاملًا يظهر عند المرور (title) */}
               <div
                 className={`${MONO} mt-2 flex justify-between gap-2 font-medium transition-opacity duration-500 [@media(hover:hover)]:group-hover/grid:opacity-30 [@media(hover:hover)]:group-hover/item:!opacity-100`}>
                 <span className="shrink-0">{pad3(i + 1)}</span>
                 <span className="truncate text-right">{item.title}</span>
               </div>
-              <p
-                className={`${MONO} mt-1 truncate font-medium text-black/40 transition-opacity duration-500 [@media(hover:hover)]:group-hover/grid:opacity-30 [@media(hover:hover)]:group-hover/item:!opacity-100`}>
-                {FORMATS[item.format].w}×{FORMATS[item.format].h} in
-              </p>
             </Link>
           </li>
         ))}

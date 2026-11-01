@@ -195,7 +195,6 @@ export const loadSiteData = async (): Promise<SiteData> => {
       quote: t.quote,
       name: t.name,
       role: t.role,
-      photo: t.photo ? sized(t.photo.url, 160) : undefined,
     })),
     stats: content.stats,
     experience: content.experience,

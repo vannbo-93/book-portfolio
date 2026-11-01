@@ -9,40 +9,16 @@ import {
 } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
-import { TESTIMONIALS_TEXT, type Testimonial } from "../data/testimonials";
+import { TESTIMONIALS_TEXT } from "../data/testimonials";
 import { useSiteData } from "../data/siteData";
 
 // قسم آراء العملاء: خلفية سوداء، عنوان كبير في المنتصف، وتحته تعليق واحد في كل مرة
-// (التعليق، ثم صورة العميل، ثم اسمه وصفته).
+// (التعليق، ثم اسم العميل وصفته، بلا صورة).
 // التنقل: نصف القسم الأيسر = التعليق السابق، والأيمن = التالي.
 // عند تحريك الماوس فوق القسم: يختفي المؤشر ويظهر مكانه [ PREVIOUS ] في النصف الأيسر و[ NEXT ] في الأيمن.
 // على الهاتف: نفس الشيء باللمس (اضغط يسار القسم أو يمينه).
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
-
-// الأحرف الأولى من الاسم، مكان الصورة إلى أن تتوفر
-const initials = (name: string) =>
-  name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-const Avatar = ({ t }: { t: Testimonial }) =>
-  t.photo ? (
-    <img
-      src={t.photo}
-      alt=""
-      className="h-12 w-12 rounded-full object-cover grayscale"
-    />
-  ) : (
-    <span
-      aria-hidden="true"
-      className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 font-sans text-base font-medium tracking-[-0.02em]">
-      {initials(t.name)}
-    </span>
-  );
 
 const Testimonials = () => {
   const reduce = useReducedMotion();
@@ -131,8 +107,7 @@ const Testimonials = () => {
                 “{t.quote}”
               </blockquote>
               <figcaption className="mt-12 flex flex-col items-center">
-                <Avatar t={t} />
-                <span className={`${MONO} mt-6`}>{t.name}</span>
+                <span className={MONO}>{t.name}</span>
                 <span className={`${MONO} mt-1.5 font-medium text-white/55`}>
                   {t.role}
                 </span>

@@ -96,12 +96,6 @@ export const CONTENT_TYPES: Record<string, ContentType> = {
         placeholder: "Author — Book title",
       },
       {
-        name: "photo",
-        label: "Photo or logo",
-        kind: "image",
-        hint: "Optional. Without it, the initials are shown.",
-      },
-      {
         name: "consent",
         label: "The client agreed to publish this testimonial",
         kind: "checkbox",
@@ -109,7 +103,6 @@ export const CONTENT_TYPES: Record<string, ContentType> = {
     ],
     summary: (i) =>
       `${i.name}${i.consent ? "" : " — no permission yet (hidden)"}`,
-    thumb: (i) => i.photo as Media | null,
   },
   faqs: {
     title: "FAQ",

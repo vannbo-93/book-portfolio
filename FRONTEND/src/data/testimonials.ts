@@ -1,13 +1,11 @@
 /** @format */
 // قسم آراء العملاء: العناوين هنا، والآراء نفسها من لوحة التحكم.
 // لا يظهر رأي في الموقع إلا إن وافق صاحبه على النشر (خانة consent في لوحة التحكم).
-// photo: صورة العميل أو شعار شركته. بدونها تظهر الأحرف الأولى من الاسم.
 
 export interface Testimonial {
   quote: string;
   name: string;
   role: string;
-  photo?: string;
 }
 
 export const TESTIMONIALS_TEXT = {

@@ -1,12 +1,12 @@
 /** @format */
 import { useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { Reorder } from "motion/react";
 import { api } from "../../lib/api";
 import { sized } from "../../lib/image";
 import { useLoad } from "../useLoad";
 import PageHeader from "../PageHeader";
-import { BUTTON, MONO_SM, errorText } from "../ui";
+import { BUTTON, BUTTON_GHOST, MONO_SM, errorText } from "../ui";
 import type { AdminBook } from "../types";
 
 // قائمة الكتب: اسحب لتغيير الترتيب في الموقع، واضغط على كتاب لتعديله
@@ -15,6 +15,8 @@ const Books = () => {
     "/api/admin/books",
   );
   const [saveError, setSaveError] = useState("");
+  // بعد نقل كتاب إلى السلة من صفحة التعديل: رسالة تأكيد هنا
+  const trashed = (useLocation().state as { trashed?: string } | null)?.trashed;
   // آخر ترتيب (لحفظه عند إفلات الكتاب المسحوب)
   const latest = useRef<AdminBook[]>([]);
 
@@ -44,10 +46,24 @@ const Books = () => {
       <PageHeader
         title="Books"
         note="Drag a book to change its place on the site. Drafts are only visible here.">
+        <Link to="/admin/books/trash" className={BUTTON_GHOST}>
+          Trash
+        </Link>
         <Link to="/admin/books/new" className={BUTTON}>
           + New book
         </Link>
       </PageHeader>
+
+      {trashed && (
+        <p className={`${MONO_SM} mb-4 text-emerald-700`}>
+          “{trashed}” moved to the trash.{" "}
+          <Link
+            to="/admin/books/trash"
+            className="underline underline-offset-[3px]">
+            Open trash
+          </Link>
+        </p>
+      )}
 
       {saveError && (
         <p className={`${MONO_SM} mb-4 text-red-700`}>

@@ -100,13 +100,13 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
     if (
       !book ||
       !confirm(
-        `Delete "${book.title}" and all its images? This cannot be undone.`,
+        `Move "${book.title}" to the trash? It disappears from the site, and you can restore it from Books → Trash.`,
       )
     )
       return;
     try {
       await api(`/api/admin/books/${book._id}`, { method: "DELETE" });
-      navigate("/admin/books");
+      navigate("/admin/books", { state: { trashed: book.title } });
     } catch (err) {
       setMessage({ ok: false, text: errorText(err) });
     }
@@ -256,7 +256,7 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
             )}
             {book && (
               <button type="button" onClick={remove} className={BUTTON_DANGER}>
-                Delete book
+                Move to trash
               </button>
             )}
           </section>

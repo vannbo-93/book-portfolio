@@ -27,6 +27,8 @@ export interface AdminBook {
   order: number;
   status: "draft" | "published";
   updatedAt: string;
+  // تاريخ نقله إلى السلة (null أو غير موجود = ليس في السلة)
+  deletedAt?: string | null;
 }
 
 // عنصر من قوائم المحتوى (أغلفة، آراء، أسئلة...): حقوله تختلف حسب النوع

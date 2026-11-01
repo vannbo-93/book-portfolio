@@ -63,26 +63,35 @@ const imageIds = (book: { cover?: { publicId: string } | null; spreads?: { publi
   ...(book.spreads ?? []).map((s) => s.publicId),
 ];
 
+// ليس في السلة. { deletedAt: null } يطابق أيضًا الكتب القديمة التي لا تملك هذا الحقل أصلًا
+const NOT_TRASHED = { deletedAt: null };
+
 // ===== للزوار =====
 
 // GET /api/books: الكتب المنشورة بالترتيب
 export const listPublished: RequestHandler = async (_req, res) => {
-  const books = await Book.find({ status: "published" }).sort({ order: 1, year: -1 }).select("-status -__v").lean();
+  const books = await Book.find({ status: "published", ...NOT_TRASHED }).sort({ order: 1, year: -1 }).select("-status -__v").lean();
   res.json({ books });
 };
 
 // GET /api/books/:slug: كتاب منشور واحد (المسودة = غير موجود)
 export const getPublished: RequestHandler = async (req, res) => {
-  const book = await Book.findOne({ slug: req.params.slug, status: "published" }).select("-status -__v").lean();
+  const book = await Book.findOne({ slug: req.params.slug, status: "published", ...NOT_TRASHED }).select("-status -__v").lean();
   if (!book) throw new AppError(404, "Book not found");
   res.json({ book });
 };
 
 // ===== للأدمن =====
 
-// GET /api/admin/books: كل الكتب مع المسودات
+// GET /api/admin/books: كل الكتب مع المسودات (بلا كتب السلة)
 export const listAll: RequestHandler = async (_req, res) => {
-  const books = await Book.find().sort({ order: 1, year: -1 }).lean();
+  const books = await Book.find(NOT_TRASHED).sort({ order: 1, year: -1 }).lean();
+  res.json({ books });
+};
+
+// GET /api/admin/books/trash: كتب السلة، الأحدث حذفًا أولًا
+export const listTrash: RequestHandler = async (_req, res) => {
+  const books = await Book.find({ deletedAt: { $ne: null } }).sort({ deletedAt: -1 }).lean();
   res.json({ books });
 };
 
@@ -110,6 +119,7 @@ export const update: RequestHandler = async (req, res) => {
   const data = updateSchema.parse(req.body);
   const book = await Book.findById(req.params.id);
   if (!book) throw new AppError(404, "Book not found");
+  if (book.deletedAt) throw new AppError(400, "This book is in the trash. Restore it first");
 
   const before = imageIds(book);
   book.set(data);
@@ -122,10 +132,33 @@ export const update: RequestHandler = async (req, res) => {
   res.json({ book });
 };
 
-// DELETE /api/admin/books/:id: يحذف الكتاب وكل صوره
+// DELETE /api/admin/books/:id: ينقل الكتاب إلى السلة (يختفي من الموقع فورًا، وصوره تبقى)
 export const remove: RequestHandler = async (req, res) => {
-  const book = await Book.findByIdAndDelete(req.params.id);
+  const book = await Book.findOneAndUpdate(
+    { _id: req.params.id, ...NOT_TRASHED },
+    { deletedAt: new Date() },
+    { returnDocument: "after" },
+  ).lean();
   if (!book) throw new AppError(404, "Book not found");
+  res.json({ book });
+};
+
+// POST /api/admin/books/:id/restore: يعيد الكتاب من السلة بحالته السابقة (منشور أو مسودة)، في آخر القائمة
+export const restore: RequestHandler = async (req, res) => {
+  const last = await Book.findOne(NOT_TRASHED).sort({ order: -1 }).select("order").lean();
+  const book = await Book.findOneAndUpdate(
+    { _id: req.params.id, deletedAt: { $ne: null } },
+    { deletedAt: null, order: (last?.order ?? -1) + 1 },
+    { returnDocument: "after" },
+  ).lean();
+  if (!book) throw new AppError(404, "Book not found in the trash");
+  res.json({ book });
+};
+
+// DELETE /api/admin/books/:id/permanent: حذف نهائي من السلة، مع كل صوره من Cloudinary (لا رجعة فيه)
+export const removeForever: RequestHandler = async (req, res) => {
+  const book = await Book.findOneAndDelete({ _id: req.params.id, deletedAt: { $ne: null } });
+  if (!book) throw new AppError(404, "Book not found in the trash (move it to the trash first)");
   await deleteMediaMany(imageIds(book));
   res.status(204).end();
 };

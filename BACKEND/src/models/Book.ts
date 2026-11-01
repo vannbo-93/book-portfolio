@@ -37,6 +37,9 @@ const bookSchema = new Schema(
     order: { type: Number, default: 0, index: true },
     // draft: يراه الأدمن فقط. published: يظهر للزوار
     status: { type: String, enum: BOOK_STATUSES, default: "draft", index: true },
+    // سلة المحذوفات: تاريخ نقل الكتاب إلى السلة (null = ليس في السلة).
+    // الكتاب في السلة مخفي عن الزوار وعن قائمة الكتب، وصوره باقية حتى يُحذف نهائيًا
+    deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true },
 );

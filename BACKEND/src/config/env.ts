@@ -32,6 +32,10 @@ const schema = z.object({
   SMTP_PASS: z.string().optional(),
   // البريد الذي يصله الإشعار (بريد المصمم)
   NOTIFY_EMAIL: z.union([z.email(), z.literal("")]).optional(),
+  // رابط Deploy Hook لخدمة الواجهة على Render (اختياري، سري: من يملكه يستطيع إعادة بناء الموقع).
+  // عند إضافة كتاب أو تعديله أو حذفه يُعاد بناء الواجهة تلقائيًا، فتتحدث معاينة رابطه في WhatsApp
+  // وخريطة الموقع (scripts/prerender.mjs). بدونه: يحتاج ذلك Manual Deploy يدويًا للواجهة
+  SITE_DEPLOY_HOOK: z.union([z.url(), z.literal("")]).optional(),
 });
 
 const parsed = schema.safeParse(process.env);

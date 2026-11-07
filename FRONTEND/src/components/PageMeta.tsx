@@ -5,8 +5,9 @@ import { useSiteData } from "../data/siteData";
 
 // عنوان تبويب المتصفح لكل صفحة (مثل "Works — USSAIN").
 // React 19 ينقل <title> وحده إلى أعلى الصفحة (<head>)، فيكفي أن نرسمه هنا.
-// ملاحظة: بطاقة المعاينة في فيسبوك ولينكدإن لا تقرأ هذا (لا تشغّل JavaScript)،
-// بل تقرأ الوسوم الثابتة في index.html، وهي واحدة للموقع كله.
+// ملاحظة: بطاقات المعاينة (WhatsApp, Facebook, LinkedIn) لا تشغّل JavaScript فلا ترى هذا.
+// لها نسخة HTML ثابتة لكل صفحة وكل كتاب، يكتبها scripts/prerender.mjs بعد البناء
+// (عنوان ووصف وصورة لكل رابط). إن غيّرت عنوانًا هنا، غيّره هناك أيضًا.
 
 const TITLES: Record<string, string> = {
   "/work": "Works",

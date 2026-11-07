@@ -5,6 +5,7 @@ import { AppError } from "../middleware/error.js";
 import { SLUG_PATTERN, slugify } from "../lib/slug.js";
 import { BOOK_FORMATS } from "../lib/formats.js";
 import { deleteMediaMany, isOwnMedia } from "../services/media.js";
+import { scheduleSiteRebuild } from "../services/siteRebuild.js";
 
 // ===== فحص البيانات المرسلة من لوحة التحكم =====
 
@@ -111,6 +112,7 @@ export const create: RequestHandler = async (req, res) => {
   // الكتاب الجديد يظهر في آخر القائمة
   const last = await Book.findOne().sort({ order: -1 }).select("order").lean();
   const book = await Book.create({ ...data, slug, order: (last?.order ?? -1) + 1 });
+  scheduleSiteRebuild();
   res.status(201).json({ book });
 };
 
@@ -129,6 +131,7 @@ export const update: RequestHandler = async (req, res) => {
   // الصور التي أُزيلت من الكتاب تُحذف من Cloudinary (بعد نجاح الحفظ فقط)
   const after = new Set(imageIds(book));
   await deleteMediaMany(before.filter((id) => !after.has(id)));
+  scheduleSiteRebuild();
   res.json({ book });
 };
 
@@ -140,6 +143,7 @@ export const remove: RequestHandler = async (req, res) => {
     { returnDocument: "after" },
   ).lean();
   if (!book) throw new AppError(404, "Book not found");
+  scheduleSiteRebuild();
   res.json({ book });
 };
 
@@ -152,6 +156,7 @@ export const restore: RequestHandler = async (req, res) => {
     { returnDocument: "after" },
   ).lean();
   if (!book) throw new AppError(404, "Book not found in the trash");
+  scheduleSiteRebuild();
   res.json({ book });
 };
 
@@ -160,6 +165,7 @@ export const removeForever: RequestHandler = async (req, res) => {
   const book = await Book.findOneAndDelete({ _id: req.params.id, deletedAt: { $ne: null } });
   if (!book) throw new AppError(404, "Book not found in the trash (move it to the trash first)");
   await deleteMediaMany(imageIds(book));
+  scheduleSiteRebuild();
   res.status(204).end();
 };
 

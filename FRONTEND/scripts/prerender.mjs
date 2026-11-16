@@ -83,6 +83,17 @@ const clip = (text, max = 160) => {
   return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[\s,.;:—-]+$/, "")}…`;
 };
 
+// نفس رابط الصورة الذي تطلبه الواجهة (src/lib/image.ts → sized): يجب أن يتطابق حرفيًا،
+// وإلا ينزّل المتصفح الصورة مرتين
+const sized = (url, width) =>
+  url.includes("res.cloudinary.com") && url.includes("/upload/")
+    ? url.replace("/upload/", `/upload/f_auto,q_auto,c_limit,w_${width}/`)
+    : url;
+
+// عرض الصور كما في الواجهة: الكتاب الدوّار 500 (BookFan.tsx → FAN_WIDTH)، وغلاف صفحة الكتاب 900 (siteData.ts)
+const FAN_WIDTH = 500;
+const COVER_WIDTH = 900;
+
 // غلاف الكتاب كصورة معاينة 1200×630: الغلاف كاملًا في المنتصف على خلفية سوداء (لا يُقص)
 const ogCover = (url) =>
   url.includes("res.cloudinary.com") && url.includes("/upload/")
@@ -108,7 +119,7 @@ const setMeta = (html, attr, key, value) => {
 
 const render = (
   template,
-  { path, title, description, image, imageAlt, type = "website" },
+  { path, title, description, image, imageAlt, type = "website", preload = [] },
 ) => {
   const url = `${SITE_URL}${path === "/" ? "/" : path}`;
   let html = template
@@ -124,11 +135,21 @@ const render = (
   html = setMeta(html, "name", "twitter:title", title);
   html = setMeta(html, "name", "twitter:description", description);
   html = setMeta(html, "name", "twitter:image", image);
+  // التحميل المسبق لأكبر صورة في أول شاشة (LCP): رابطها مكتوب في الصفحة نفسها،
+  // فيبدأ المتصفح تنزيلها فورًا بدل انتظار السكربت ثم طلبات الخادم
+  const preloads = preload
+    .map(
+      (href) =>
+        `    <link rel="preload" as="image" href="${escapeHtml(href)}" fetchpriority="high" />\n`,
+    )
+    .join("");
   // الرابط الرسمي: /books/x و /books/x/ صفحة واحدة عند محركات البحث
-  return html.replace(
-    "</head>",
-    `    <link rel="canonical" href="${escapeHtml(url)}" />\n  </head>`,
-  );
+  return html
+    .replace(/\s*<link rel="preload" as="image"[^>]*>/g, "")
+    .replace(
+      "</head>",
+      `${preloads}    <link rel="canonical" href="${escapeHtml(url)}" />\n  </head>`,
+    );
 };
 
 const write = async (path, html) => {
@@ -140,13 +161,17 @@ const write = async (path, html) => {
 
 // ===== الكتب من الخادم =====
 
+const fetchJson = async (path) => {
+  const res = await fetch(`${API_URL}${path}`, {
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+};
+
 const fetchBooks = async () => {
   try {
-    const res = await fetch(`${API_URL}/api/books`, {
-      signal: AbortSignal.timeout(20_000),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const { books } = await res.json();
+    const { books } = await fetchJson("/api/books");
     return Array.isArray(books) ? books : [];
   } catch (err) {
     console.warn(
@@ -154,6 +179,26 @@ const fetchBooks = async () => {
     );
     return null;
   }
+};
+
+// الإعدادات: فقط لمعرفة أغلفة الكتاب الدوّار المختارة. إن تعذّر جلبها: بلا تحميل مسبق للرئيسية
+const fetchSettings = async () => {
+  try {
+    const { settings } = await fetchJson("/api/settings");
+    return settings ?? null;
+  } catch {
+    return null;
+  }
+};
+
+// أول صورتين في الكتاب الدوّار، بنفس منطق الواجهة (pages/Home.tsx → fanItems):
+// الأغلفة المختارة له في لوحة التحكم إن وُجدت، وإلا أغلفة الكتب بترتيبها
+const fanPreload = (books, settings) => {
+  const chosen = (settings?.fanPages ?? []).map((m) => m?.url).filter(Boolean);
+  const urls = chosen.length
+    ? chosen
+    : (books ?? []).map((b) => b.cover?.url).filter(Boolean);
+  return urls.slice(0, 2).map((url) => sized(url, FAN_WIDTH));
 };
 
 const bookPage = (book) => {
@@ -172,6 +217,7 @@ const bookPage = (book) => {
     image: book.cover?.url ? ogCover(book.cover.url) : DEFAULT_IMAGE,
     imageAlt: book.cover?.alt || `${book.title}, book design by USSAIN`,
     type: "article",
+    preload: book.cover?.url ? [sized(book.cover.url, COVER_WIDTH)] : [],
   };
 };
 
@@ -187,7 +233,8 @@ const home = {
   imageAlt: "USSAIN — Book designer portfolio",
 };
 
-const books = await fetchBooks();
+const [books, settings] = await Promise.all([fetchBooks(), fetchSettings()]);
+home.preload = fanPreload(books, settings);
 const pages = [
   home,
   ...PAGES.map((p) => ({
@@ -233,5 +280,5 @@ await writeFile(
 );
 
 console.log(
-  `✓ prerender: ${pages.length} pages (${books ? books.length : 0} books), sitemap.xml, robots.txt`,
+  `✓ prerender: ${pages.length} pages (${books ? books.length : 0} books, ${home.preload.length} home preloads), sitemap.xml, robots.txt`,
 );

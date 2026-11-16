@@ -1,3 +1,4 @@
+import { scheduleSiteRebuild } from "../services/siteRebuild.js";
 import type { RequestHandler } from "express";
 import { z } from "zod";
 import { Settings } from "../models/Settings.js";
@@ -73,5 +74,7 @@ export const update: RequestHandler = async (req, res) => {
   for (const [key, value] of Object.entries(videos ?? {})) settings.set(`videos.${key}`, value);
   await settings.save();
   await deleteRemovedMedia(before, settings.toObject());
+  // أغلفة الكتاب الدوّار تغيّرت: الصفحة الرئيسية الثابتة تحمّل أول غلافين مسبقًا (prerender.mjs)، فنعيد بناءها
+  if (data.fanPages !== undefined) scheduleSiteRebuild();
   res.json({ settings: toPublic(settings) });
 };

@@ -51,6 +51,8 @@ const Book = () => {
           {...reveal}
           src={book.cover.src}
           alt={book.cover.alt || book.title}
+          // أكبر صورة في أول شاشة: تُقدَّم على غيرها (والصفحة الثابتة تحمّلها مسبقًا، انظر prerender.mjs)
+          fetchPriority="high"
           width={book.cover.width}
           height={book.cover.height}
           className="aspect-[2/3] w-full max-w-md rounded-[4px] object-cover shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)]"

@@ -30,21 +30,27 @@ The site is linked from the designer's social media bios, so it is built mobile-
 
 ### Public site
 - **3D spinning book** built with CSS 3D transforms only (no WebGL), draggable with momentum.
-- **Book pages** with the cover, project details and full-size double-page spreads.
+- **Works page** with category filters (Journals, Workbooks, Guides & Ebooks, Nonfiction) that show only categories containing books, shareable through the URL (`/work?category=journals`).
+- **Book pages** with the cover, project details and double-page spreads that open in a full-screen viewer (keyboard arrows, swipe and pinch-to-zoom on phones).
 - **Scroll-driven sections**: stacked panels with looping videos, an expanding video reel, word-by-word text reveal and animated counters.
 - **Smooth scrolling** (Lenis) and page-slide transitions, with a reduced-motion fallback.
-- **Contact form** saved to the database, with an email notification to the designer.
+- **Contact form** saved to the database, with an email notification to the designer. Visitors can add project details (format, length, timeline), and an optional **Message me on Instagram** button opens a direct chat (the app on phones, the profile on computers).
 - **Optimized media**: Cloudinary delivers images in WebP/AVIF at the exact width needed, and videos are compressed and lighter on phones.
-- **Social previews** (Open Graph) for WhatsApp, Instagram, LinkedIn and X.
+- **Social previews and SEO**: a build step pre-renders a static HTML page for every route and every book with its own title, description and cover image (Open Graph), so links shared on WhatsApp, Instagram, LinkedIn and X show the right book. It also generates `sitemap.xml` and `robots.txt`.
+- **Privacy-friendly analytics**: page views are counted as anonymous daily totals. No cookies, no IP addresses and no third-party scripts: the browser only keeps the date of its last visit, so a visitor is counted once per day.
 
 ### Admin dashboard (`/admin`)
-- **Books**: create, edit, publish/draft and drag-to-reorder, with the cover, spreads, book format and project details.
+- **Books**: create, edit, publish/draft and drag-to-reorder, with the cover, spreads, book format, categories and project details. The slug is formatted automatically while typing.
+- **Bulk upload**: select many spreads at once; files are sorted by name and uploaded in batches with a progress counter.
+- **Image checks**: a warning appears when an image is too small for its place on the site, or when a JPEG is in CMYK (print colors that can look wrong on screens).
 - **Content lists**: exclusive covers, testimonials (shown only with the client's consent), FAQ, services, numbers and experience.
 - **3D book**: choose up to 12 covers for the spinning book on the home page.
-- **Settings**: contact info, clock and time zone, availability status, social links and the three home-page videos.
-- **Messages**: an inbox for the contact form.
-- **Account**: change the password and download a full JSON backup.
+- **Settings**: contact info, clock and time zone, availability status, social links, Instagram username and the three home-page videos.
+- **Messages**: an inbox for the contact form, with the project details.
+- **Analytics**: visitors, visits and page views per day, most viewed books, traffic sources (Instagram, Google, direct…), pages and devices, compared with the previous period. The admin's own visits are excluded.
+- **Account**: change the password, download a full JSON backup, and see the automatic backup status (a backup is emailed every 30 days by default, with an "Email a backup now" button).
 - **Uploads** go straight to Cloudinary. Unsaved uploads are cleaned up automatically, and removed images are deleted from storage on save.
+- **Automatic site rebuild**: after books change, the API triggers a new build of the static site (through a Render deploy hook), so share previews and the sitemap stay up to date.
 
 ## Architecture
 
@@ -54,7 +60,8 @@ flowchart LR
     F -->|REST API| B[Backend<br/>Express 5<br/>api.ussainisawi.com]
     B --> DB[(MongoDB Atlas)]
     B --> C[Cloudinary<br/>images & videos]
-    B --> M[SMTP<br/>email notifications]
+    B --> M[SMTP<br/>notifications & backups]
+    B -.->|deploy hook| F
     V -.->|optimized media| C
 ```
 
@@ -76,18 +83,19 @@ The frontend and backend live in one repository and deploy as two separate servi
 ```
 book-portfolio/
 ├── FRONTEND/
+│   ├── scripts/          # prerender.mjs: per-page HTML, sitemap.xml, robots.txt
 │   └── src/
 │       ├── pages/        # Home, Works, Book, About/Services, Contact, Process, 404
-│       ├── components/   # Site sections (BookFan, StackReveal, CoverMarquee…)
+│       ├── components/   # Site sections (BookFan, StackReveal, SpreadLightbox…)
 │       ├── admin/        # Dashboard (lazy-loaded, separate from the public bundle)
-│       ├── data/         # siteData.ts: fetches & shapes all content from the API
-│       └── lib/          # API client, Cloudinary helpers, smooth scroll
+│       ├── data/         # siteData.ts (all content from the API), categories, contact options
+│       └── lib/          # API client, Cloudinary helpers, smooth scroll, analytics tracker
 └── BACKEND/
     └── src/
         ├── routes/ controllers/ models/   # REST API
         ├── content/      # Generic registry for list-type content
         ├── middleware/   # Auth, uploads, error handling
-        ├── services/     # Cloudinary, email
+        ├── services/     # Cloudinary, email, auto backup, site rebuild
         └── scripts/      # create-admin, seed, restore
 ```
 
@@ -135,6 +143,9 @@ During development the frontend talks to `http://localhost:4000` by default.
 | `CLOUDINARY_FOLDER` | Upload folder (default `book-portfolio`) |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Optional: email notifications for new messages |
 | `NOTIFY_EMAIL` | Optional: who receives those notifications |
+| `SITE_DEPLOY_HOOK` | Optional: the static site's Render deploy hook URL, to rebuild it automatically after books change. Secret |
+| `BACKUP_EVERY_DAYS` | Days between automatic email backups (default `30`, `0` = off). Needs SMTP |
+| `BACKUP_EMAIL` | Optional: where backups are sent (defaults to `NOTIFY_EMAIL`) |
 
 The server validates every variable at startup and exits with a clear message if one is missing or invalid.
 
@@ -142,7 +153,8 @@ The server validates every variable at startup and exits with a clear message if
 
 | Variable | Description |
 |---|---|
-| `VITE_API_URL` | Backend URL. It is read at build time, so changing it requires a rebuild. |
+| `VITE_API_URL` | Backend URL. It is read at build time, so changing it requires a rebuild. The prerender step also uses it to fetch the books. |
+| `SITE_URL` | Optional: the public site URL used in previews and the sitemap (default `https://ussainisawi.com`) |
 
 > Never commit `.env` files. Real secrets belong only in `.env` locally and in the hosting provider's environment settings.
 
@@ -155,7 +167,7 @@ The server validates every variable at startup and exits with a clear message if
 | BACKEND | `npm run create-admin -- <email>` | Create the admin, or reset its password (logs out all devices) |
 | BACKEND | `npm run restore -- <file.json> --yes` | Restore a backup downloaded from the dashboard |
 | FRONTEND | `npm run dev` | Start the Vite dev server |
-| FRONTEND | `npm run build` | Type-check and build to `dist/` |
+| FRONTEND | `npm run build` | Type-check, build to `dist/`, then pre-render pages and the sitemap |
 | FRONTEND | `npm run lint` | Run ESLint |
 
 ## Deployment
@@ -165,7 +177,19 @@ Both apps are deployed on [Render](https://render.com):
 | Service | Type | Root | Build command | Output / start |
 |---|---|---|---|---|
 | API | Web Service | `BACKEND` | `npm ci --include=dev && npm run build` | `npm start`, health check `/api/health` |
-| Site | Static Site | `FRONTEND` | `npm ci --include=dev && npm run build` | publish `dist`, rewrite `/*` → `/index.html` |
+| Site | Static Site | `FRONTEND` | `npm ci --include=dev && npm run build` | publish `dist`, rewrite rules below |
+
+The static site needs these **Rewrite** rules (not Redirect), in this order, so each URL serves its pre-rendered page:
+
+| Source | Destination |
+|---|---|
+| `/books/:slug` | `/books/:slug/index.html` |
+| `/work` | `/work/index.html` |
+| `/services` | `/services/index.html` |
+| `/process` | `/process/index.html` |
+| `/about` | `/about/index.html` |
+| `/contact` | `/contact/index.html` |
+| `/*` | `/index.html` |
 
 `--include=dev` is needed because `NODE_ENV=production` would otherwise skip TypeScript during the build. Render's outbound IPs are allow-listed in MongoDB Atlas. Note that SMTP needs a paid Render instance, because free instances block outgoing mail ports.
 
@@ -174,7 +198,7 @@ Both apps are deployed on [Render](https://render.com):
 - Admin password hashed with bcrypt, and the session stored in an httpOnly, secure, SameSite cookie.
 - Changing the password invalidates every other active session.
 - All admin routes are protected server-side. The `/admin` page itself holds no data.
-- Rate limits on login and on the contact form, plus a honeypot field against bots.
+- Rate limits on login, the contact form and the analytics endpoint, plus a honeypot field against bots.
 - Request bodies validated with Zod. Uploads are restricted by file type and size and must live in the site's own Cloudinary folder.
 - Helmet security headers, and CORS restricted to the site's domains.
 

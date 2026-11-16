@@ -66,6 +66,17 @@ const DetailSelect = ({
   );
 };
 
+// رابط إنستغرام: ig.me/m يفتح المحادثة مباشرة، لكنه يعمل في تطبيق إنستغرام على الهاتف فقط.
+// على الحاسوب (Instagram Web) لا يدعمه إنستغرام ويعرض "Sorry, this page isn't available"،
+// فنفتح صفحة الحساب بدلًا منه، وفيها زر Message.
+const IS_MOBILE =
+  typeof navigator !== "undefined" &&
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const instagramLink = (handle: string) => {
+  const h = encodeURIComponent(handle);
+  return IS_MOBILE ? `https://ig.me/m/${h}` : `https://www.instagram.com/${h}/`;
+};
+
 const Contact = ({ id = "contact" }: { id?: string }) => {
   const { services, settings } = useSiteData();
   const EMAIL = settings.email;
@@ -259,13 +270,13 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
             </div>
           </form>
 
-          {/* رسالة مباشرة: ig.me يفتح المحادثة في تطبيق إنستغرام على الهاتف (أو في الموقع على الحاسوب) */}
+          {/* رسالة مباشرة: المحادثة على الهاتف، وصفحة الحساب على الحاسوب (انظر instagramLink) */}
           {settings.instagram && (
             <p
               className={`${MONO} mt-10 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-black/10 pt-6 font-medium`}>
               <span className="text-black/50">Prefer a quick chat?</span>
               <a
-                href={`https://ig.me/m/${encodeURIComponent(settings.instagram)}`}
+                href={instagramLink(settings.instagram)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-black">

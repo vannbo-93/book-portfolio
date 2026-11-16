@@ -1,11 +1,14 @@
 /** @format */
+import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { motion } from "motion/react";
 import { useSiteData } from "../data/siteData";
 import { MONO } from "../hooks/useClock";
 import NotFound from "./NotFound";
+import SpreadLightbox from "../components/SpreadLightbox";
 
-// صفحة الكتاب: الغلاف والمعلومات أولًا، ثم الصفحات المزدوجة كبيرة واحدة تحت الأخرى،
+// صفحة الكتاب: الغلاف والمعلومات أولًا، ثم الصفحات المزدوجة كبيرة واحدة تحت الأخرى
+// (الضغط على أي صفحة يفتحها بملء الشاشة: SpreadLightbox)،
 // وفي النهاية رابط للكتاب التالي حتى يكمل الزائر التصفح بدل أن يعود للخلف.
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -20,6 +23,8 @@ const reveal = {
 const Book = () => {
   const { slug } = useParams();
   const { books } = useSiteData();
+  // الصفحة المزدوجة المفتوحة بملء الشاشة (null = لا شيء)
+  const [open, setOpen] = useState<number | null>(null);
   const index = books.findIndex((b) => b.slug === slug);
   if (index === -1) return <NotFound />;
 
@@ -98,16 +103,23 @@ const Book = () => {
           {/* ظل خفيف + خط رفيع شبه شفاف حول كل صفحة: الصفحات البيضاء تظهر حدودها على خلفية الموقع البيضاء */}
           {book.spreads.map((spread, i) => (
             <motion.figure key={spread.src} {...reveal}>
-              <img
-                src={spread.src}
-                alt={spread.alt || `${book.title}, spread ${i + 1}`}
-                width={spread.width}
-                height={spread.height}
-                loading="lazy"
-                decoding="async"
-                className="w-full rounded-[4px] bg-neutral-200 object-cover shadow-[0_2px_6px_rgba(0,0,0,0.06),0_24px_48px_-24px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]"
-                style={{ aspectRatio: `${spread.width} / ${spread.height}` }}
-              />
+              {/* الضغط يفتح الصفحة بملء الشاشة */}
+              <button
+                type="button"
+                onClick={() => setOpen(i)}
+                aria-label={`Open spread ${i + 1} full screen`}
+                className="block w-full cursor-zoom-in focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-black">
+                <img
+                  src={spread.src}
+                  alt={spread.alt || `${book.title}, spread ${i + 1}`}
+                  width={spread.width}
+                  height={spread.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full rounded-[4px] bg-neutral-200 object-cover shadow-[0_2px_6px_rgba(0,0,0,0.06),0_24px_48px_-24px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.06]"
+                  style={{ aspectRatio: `${spread.width} / ${spread.height}` }}
+                />
+              </button>
               <figcaption className={`${MONO} mt-3 text-black/40`}>
                 Spread {pad(i + 1)}
               </figcaption>
@@ -115,6 +127,14 @@ const Book = () => {
           ))}
         </section>
       )}
+
+      <SpreadLightbox
+        key={book.slug}
+        spreads={book.spreads}
+        title={book.title}
+        index={open}
+        onIndex={setOpen}
+      />
 
       {/* الكتاب التالي */}
       {books.length > 1 && (

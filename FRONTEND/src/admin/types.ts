@@ -47,6 +47,10 @@ export interface Message {
   email: string;
   topic: string;
   message: string;
+  // تفاصيل المشروع (اختيارية، فارغة = لم يختر الزائر)
+  format?: string;
+  length?: string;
+  timeline?: string;
   read: boolean;
   createdAt: string;
 }

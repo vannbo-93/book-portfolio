@@ -97,6 +97,26 @@ const Messages = () => {
               {open === m._id && (
                 <div className="border-t border-black/10 p-4">
                   <p className={`${MONO_SM} text-black/50`}>{m.email}</p>
+                  {/* تفاصيل المشروع: فقط ما اختاره الزائر */}
+                  {(m.format || m.length || m.timeline) && (
+                    <dl
+                      className={`${MONO_SM} mt-3 flex flex-wrap gap-x-6 gap-y-1`}>
+                      {(
+                        [
+                          ["Format", m.format],
+                          ["Length", m.length],
+                          ["Timeline", m.timeline],
+                        ] as const
+                      )
+                        .filter(([, v]) => v)
+                        .map(([k, v]) => (
+                          <div key={k} className="flex gap-2">
+                            <dt className="text-black/40">{k}</dt>
+                            <dd>{v}</dd>
+                          </div>
+                        ))}
+                    </dl>
+                  )}
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
                     {m.message}
                   </p>

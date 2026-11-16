@@ -3,11 +3,12 @@ import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { MONO } from "../hooks/useClock";
 import { SITE } from "../layout";
-import { CONTACT_TEXT, GENERAL_TOPIC } from "../data/contact";
+import { CONTACT_TEXT, GENERAL_TOPIC, PROJECT_DETAILS } from "../data/contact";
 import { useSiteData } from "../data/siteData";
 import { api } from "../lib/api";
 
-// قسم التواصل: نموذج من أربعة حقول (الاسم، البريد، الموضوع، الرسالة) بخطوط سفلية فقط.
+// قسم التواصل: نموذج (الاسم، البريد، الموضوع، الرسالة) بخطوط سفلية فقط.
+// بعد اختيار موضوع مشروع (لا "سؤال عام") تظهر ثلاثة أسئلة اختيارية: الشكل، والطول، والموعد.
 //
 // الإرسال: إلى الخادم مباشرة (POST /api/contact)، فتُحفظ الرسالة وتظهر في لوحة التحكم،
 // ويصل المصمم إشعار بالبريد إن كان مفعّلًا. الزائر لا يحتاج برنامج بريد على جهازه.
@@ -16,6 +17,52 @@ import { api } from "../lib/api";
 const FIELD =
   "w-full rounded-none border-0 border-b border-black/30 bg-transparent px-0 pb-2 pt-1 font-sans text-base normal-case tracking-normal outline-none transition-colors placeholder:text-black/35 focus:border-black";
 const LABEL = `${MONO} block font-medium`;
+
+// سهم القائمة المنسدلة (بدل سهم المتصفح، ليبدو نفس الشكل في كل المتصفحات)
+const Chevron = () => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 12 12"
+    className="pointer-events-none absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.2">
+    <path d="M2 4.5 6 8.5 10 4.5" />
+  </svg>
+);
+
+// سؤال اختياري من أسئلة المشروع: "Select" بلون باهت حتى يختار الزائر
+const DetailSelect = ({
+  name,
+  label,
+  options,
+}: {
+  name: string;
+  label: string;
+  options: readonly string[];
+}) => {
+  const [value, setValue] = useState("");
+  return (
+    <label>
+      <span className={LABEL}>{label}</span>
+      <span className="relative mt-3 block">
+        <select
+          name={name}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className={`${FIELD} cursor-pointer appearance-none pr-8 ${value ? "" : "text-black/35"}`}>
+          <option value="">Select</option>
+          {options.map((o) => (
+            <option key={o} value={o} className="text-black">
+              {o}
+            </option>
+          ))}
+        </select>
+        <Chevron />
+      </span>
+    </label>
+  );
+};
 
 const Contact = ({ id = "contact" }: { id?: string }) => {
   const { services, settings } = useSiteData();
@@ -27,6 +74,9 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
     "idle",
   );
   const [error, setError] = useState("");
+  // الموضوع المختار: يحدد هل تظهر أسئلة المشروع
+  const [topic, setTopic] = useState("");
+  const isProject = topic !== "" && topic !== GENERAL_TOPIC;
 
   const send = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,6 +90,7 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
     try {
       await api("/api/contact", { method: "POST", body: JSON.stringify(data) });
       form.reset();
+      setTopic("");
       setStatus("sent");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -105,7 +156,8 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
                 <select
                   name="topic"
                   required
-                  defaultValue=""
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
                   className={`${FIELD} cursor-pointer appearance-none pr-8 invalid:text-black/35`}>
                   <option value="" disabled>
                     Select topic
@@ -116,17 +168,36 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
                     </option>
                   ))}
                 </select>
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 12 12"
-                  className="pointer-events-none absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.2">
-                  <path d="M2 4.5 6 8.5 10 4.5" />
-                </svg>
+                <Chevron />
               </span>
             </label>
+
+            {/* أسئلة المشروع: تظهر بعد اختيار موضوع مشروع، وكلها اختيارية */}
+            <AnimatePresence initial={false}>
+              {isProject && (
+                <motion.fieldset
+                  key="details"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className="-mt-2 overflow-hidden">
+                  <legend className={`${MONO} pt-2 text-black/50`}>
+                    About your book — optional
+                  </legend>
+                  <div className="mt-6 grid gap-8 sm:grid-cols-3 sm:gap-6">
+                    {PROJECT_DETAILS.map((d) => (
+                      <DetailSelect
+                        key={d.name}
+                        name={d.name}
+                        label={d.label}
+                        options={d.options}
+                      />
+                    ))}
+                  </div>
+                </motion.fieldset>
+              )}
+            </AnimatePresence>
 
             <label>
               <span className={LABEL}>Your message</span>

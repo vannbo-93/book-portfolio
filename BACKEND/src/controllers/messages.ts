@@ -11,6 +11,10 @@ const sendSchema = z.object({
   email: z.email("Invalid email").max(200),
   topic: z.string().trim().max(150).default(""),
   message: z.string().trim().min(5, "Message is too short").max(5000),
+  // تفاصيل المشروع: اختيارية (فارغة = لم يختر)
+  format: z.string().trim().max(60).default(""),
+  length: z.string().trim().max(60).default(""),
+  timeline: z.string().trim().max(60).default(""),
   // فخ للبرامج الآلية (honeypot): حقل مخفي في النموذج، الإنسان لا يراه فيتركه فارغًا
   website: z.string().optional(),
 });

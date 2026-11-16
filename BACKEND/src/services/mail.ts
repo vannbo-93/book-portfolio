@@ -26,6 +26,9 @@ interface NewMessage {
   email: string;
   topic: string;
   message: string;
+  format?: string;
+  length?: string;
+  timeline?: string;
 }
 
 // لا يوقف الطلب أبدًا: الرسالة محفوظة في قاعدة البيانات حتى لو فشل البريد
@@ -37,7 +40,23 @@ export const notifyNewMessage = async (m: NewMessage) => {
       to: env.NOTIFY_EMAIL,
       replyTo: `"${m.name.replace(/"/g, "")}" <${m.email}>`, // "رد" في البريد يذهب للزائر مباشرة
       subject: `New message: ${m.topic || "Inquiry"} — ${m.name}`,
-      text: `${m.message}\n\n— ${m.name}\n${m.email}\nTopic: ${m.topic}`,
+      text: [
+        m.message,
+        "",
+        `— ${m.name}`,
+        m.email,
+        `Topic: ${m.topic}`,
+        // تفاصيل المشروع: فقط ما اختاره الزائر
+        ...(
+          [
+            ["Format", m.format],
+            ["Length", m.length],
+            ["Timeline", m.timeline],
+          ] as const
+        )
+          .filter(([, v]) => v)
+          .map(([k, v]) => `${k}: ${v}`),
+      ].join("\n"),
     });
   } catch (err) {
     console.error("✗ Notification email failed:", (err as Error).message);

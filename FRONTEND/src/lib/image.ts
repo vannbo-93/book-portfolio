@@ -18,6 +18,22 @@ export const resized = (src: string, width: number) =>
     ? src.replace(/(\/upload\/f_auto,q_auto,c_limit,)w_\d+\//, `$1w_${width}/`)
     : sized(src, width);
 
+// صور متجاوبة (srcset): المتصفح يختار أصغر نسخة تكفي لحجم الصورة على الشاشة ودقتها،
+// بدل تنزيل نسخة 900px لغلاف يظهر بعرض 180px على الهاتف.
+// sizes يخبر المتصفح بعرض الصورة على الشاشة قبل رسم الصفحة (مثل "50vw" = نصف عرض الشاشة)
+export const srcSet = (src: string, widths: readonly number[]) =>
+  src.includes("res.cloudinary.com") && src.includes("/upload/")
+    ? widths.map((w) => `${resized(src, w)} ${w}w`).join(", ")
+    : undefined;
+
+// المقاسات المستعملة في أكثر من مكان. أي تغيير هنا يجب أن يُنقل إلى scripts/prerender.mjs
+// (يحمّل صورة الكتاب الدوّار وغلاف صفحة الكتاب مسبقًا بنفس srcset و sizes، وإلا يُنزّلها المتصفح مرتين)
+export const GRID_WIDTHS = [200, 300, 400, 600, 900] as const;
+export const FAN_WIDTHS = [250, 375, 500] as const;
+export const FAN_SIZES = "clamp(120px, 20vw, 250px)";
+export const COVER_WIDTHS = [400, 600, 900] as const;
+export const COVER_SIZES = "(min-width: 768px) 448px, calc(100vw - 32px)";
+
 // فيديو Cloudinary خفيف: نفس فكرة الصور. Cloudinary يصغّر العرض (c_limit لا يكبّر الصغير)،
 // ويختار الجودة والترميز المناسبين (q_auto,vc_auto)، ويحوّل الملف إلى MP4
 // (مهم لملفات .mov من الآيفون التي لا يشغّلها كروم دائمًا). أول مشاهدة قد تتأخر قليلًا

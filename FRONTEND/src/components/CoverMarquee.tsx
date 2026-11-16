@@ -9,6 +9,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { FORMATS, type LatestItem } from "../data/formats";
+import { GRID_WIDTHS, srcSet } from "../lib/image";
 
 // شريط الأغلفة المتحرك: كل الأغلفة بنفس العرض، وارتفاع كل غلاف حسب مقاس كتابه الحقيقي،
 // مصطفة من الأعلى على خط مستقيم، تمر من اليمين إلى اليسار بسرعة ثابتة دون توقف.
@@ -55,6 +56,9 @@ const Covers = ({ items, hidden, onHover }: CoversProps) => (
           className="block bg-neutral-900">
           <img
             src={item.src}
+            // نفس عرض COVER أعلاه
+            srcSet={srcSet(item.src, GRID_WIDTHS)}
+            sizes="clamp(9rem, 18vw, 22rem)"
             alt={hidden ? "" : item.title}
             loading="lazy"
             decoding="async"

@@ -11,6 +11,7 @@ import {
 import { MONO } from "../hooks/useClock";
 import ScrambleText from "./ScrambleText";
 import { FORMATS, type LatestItem } from "../data/formats";
+import { GRID_WIDTHS, srcSet } from "../lib/image";
 
 // قسم "آخر الأعمال": أغلفة بعرض واحد، وارتفاع كل غلاف حسب نسبة مقاس كتابه الحقيقي،
 // واقفة على خط واحد كرف مكتبة،
@@ -107,6 +108,9 @@ const LatestWorks = ({
               <div className="overflow-hidden bg-neutral-900 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.5)] transition-[filter] duration-500 [@media(hover:hover)]:group-has-[a:hover]/grid:brightness-[0.7] [@media(hover:hover)]:group-hover/item:!brightness-100">
                 <img
                   src={item.src}
+                  // 2 أعمدة على الهاتف، 3 على المتوسطة، 5 على الكبيرة
+                  srcSet={srcSet(item.src, GRID_WIDTHS)}
+                  sizes={"(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"}
                   alt=""
                   loading="lazy"
                   decoding="async"

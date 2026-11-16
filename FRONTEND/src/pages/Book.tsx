@@ -6,6 +6,7 @@ import { useSiteData } from "../data/siteData";
 import { MONO } from "../hooks/useClock";
 import NotFound from "./NotFound";
 import SpreadLightbox from "../components/SpreadLightbox";
+import { COVER_SIZES, COVER_WIDTHS, srcSet } from "../lib/image";
 
 // صفحة الكتاب: الغلاف والمعلومات أولًا، ثم الصفحات المزدوجة كبيرة واحدة تحت الأخرى
 // (الضغط على أي صفحة يفتحها بملء الشاشة: SpreadLightbox)،
@@ -50,6 +51,8 @@ const Book = () => {
         <motion.img
           {...reveal}
           src={book.cover.src}
+          srcSet={srcSet(book.cover.src, COVER_WIDTHS)}
+          sizes={COVER_SIZES}
           alt={book.cover.alt || book.title}
           // أكبر صورة في أول شاشة: تُقدَّم على غيرها (والصفحة الثابتة تحمّلها مسبقًا، انظر prerender.mjs)
           fetchPriority="high"
@@ -151,6 +154,9 @@ const Book = () => {
           </div>
           <img
             src={next.cover.src}
+            // صورة صغيرة (80–112px)
+            srcSet={srcSet(next.cover.src, [200, 300])}
+            sizes="(min-width: 640px) 112px, 80px"
             alt=""
             loading="lazy"
             className="aspect-[2/3] w-20 rounded-[3px] object-cover transition-transform duration-500 group-hover:-translate-y-1 sm:w-28"

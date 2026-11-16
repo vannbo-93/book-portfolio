@@ -90,9 +90,19 @@ const sized = (url, width) =>
     ? url.replace("/upload/", `/upload/f_auto,q_auto,c_limit,w_${width}/`)
     : url;
 
-// عرض الصور كما في الواجهة: الكتاب الدوّار 500 (BookFan.tsx → FAN_WIDTH)، وغلاف صفحة الكتاب 900 (siteData.ts)
-const FAN_WIDTH = 500;
-const COVER_WIDTH = 900;
+// نفس المقاسات في src/lib/image.ts (FAN_* و COVER_*): التحميل المسبق يجب أن يطابق srcset و sizes
+// في الصفحة حرفيًا، فيختار المتصفح النسخة نفسها ولا ينزّل الصورة مرتين
+const FAN_WIDTHS = [250, 375, 500];
+const FAN_SIZES = "clamp(120px, 20vw, 250px)";
+const COVER_WIDTHS = [400, 600, 900];
+const COVER_SIZES = "(min-width: 768px) 448px, calc(100vw - 32px)";
+
+// وسم التحميل المسبق لصورة متجاوبة: href للمتصفحات القديمة، و imagesrcset/imagesizes للحديثة
+const responsive = (url, widths, sizes) => ({
+  href: sized(url, widths[widths.length - 1]),
+  srcset: widths.map((w) => `${sized(url, w)} ${w}w`).join(", "),
+  sizes,
+});
 
 // غلاف الكتاب كصورة معاينة 1200×630: الغلاف كاملًا في المنتصف على خلفية سوداء (لا يُقص)
 const ogCover = (url) =>
@@ -139,8 +149,8 @@ const render = (
   // فيبدأ المتصفح تنزيلها فورًا بدل انتظار السكربت ثم طلبات الخادم
   const preloads = preload
     .map(
-      (href) =>
-        `    <link rel="preload" as="image" href="${escapeHtml(href)}" fetchpriority="high" />\n`,
+      ({ href, srcset, sizes }) =>
+        `    <link rel="preload" as="image" href="${escapeHtml(href)}" imagesrcset="${escapeHtml(srcset)}" imagesizes="${escapeHtml(sizes)}" fetchpriority="high" />\n`,
     )
     .join("");
   // الرابط الرسمي: /books/x و /books/x/ صفحة واحدة عند محركات البحث
@@ -198,7 +208,9 @@ const fanPreload = (books, settings) => {
   const urls = chosen.length
     ? chosen
     : (books ?? []).map((b) => b.cover?.url).filter(Boolean);
-  return urls.slice(0, 2).map((url) => sized(url, FAN_WIDTH));
+  return urls
+    .slice(0, 2)
+    .map((url) => responsive(url, FAN_WIDTHS, FAN_SIZES));
 };
 
 const bookPage = (book) => {
@@ -217,7 +229,9 @@ const bookPage = (book) => {
     image: book.cover?.url ? ogCover(book.cover.url) : DEFAULT_IMAGE,
     imageAlt: book.cover?.alt || `${book.title}, book design by USSAIN`,
     type: "article",
-    preload: book.cover?.url ? [sized(book.cover.url, COVER_WIDTH)] : [],
+    preload: book.cover?.url
+      ? [responsive(book.cover.url, COVER_WIDTHS, COVER_SIZES)]
+      : [],
   };
 };
 

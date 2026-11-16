@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useSiteData } from "../data/siteData";
 import { MONO } from "../hooks/useClock";
 import { BOOK_CATEGORIES } from "../data/categories";
+import { GRID_WIDTHS, srcSet } from "../lib/image";
 
 // صفحة الأعمال: كل الكتب في شبكة من الأغلفة.
 // بنفس أسلوب الناف بار والفوتر: عنوان بخط Inter كبير، وتفاصيل بالخط الأحادي الصغير.
@@ -89,6 +90,9 @@ const Works = () => {
               <div className="overflow-hidden rounded-[4px] bg-neutral-200">
                 <img
                   src={book.cover.src}
+                  // 2 أعمدة على الهاتف، 3 على المتوسطة، 4 على الكبيرة
+                  srcSet={srcSet(book.cover.src, GRID_WIDTHS)}
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                   alt={book.cover.alt || book.title}
                   width={book.cover.width}
                   height={book.cover.height}

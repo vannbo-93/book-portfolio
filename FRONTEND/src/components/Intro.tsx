@@ -5,6 +5,7 @@ import { BRAND } from "../data/site";
 import { useSiteData } from "../data/siteData";
 import { FORMATS } from "../data/formats";
 import { startScroll, stopScroll } from "../lib/scroll";
+import { resized } from "../lib/image";
 
 // شاشة الدخول: صفحة سوداء في منتصفها اسم الموقع بحجم نص عادي. المدة الكاملة 2.5 ثانية:
 //   0.0 – 0.6 ث: يظهر الاسم بالتلاشي (من شفاف إلى واضح)
@@ -63,7 +64,8 @@ const CoverStrip = ({ reduce }: { reduce: boolean }) => {
     COVERS.map((c, i) => (
       <img
         key={`${hidden ? "b" : "a"}-${i}`}
-        src={c.src}
+        // الشريط ارتفاعه 64px فقط: نسخة 160px تكفي حتى لشاشات الهاتف الحادة (بدل 900px لكل غلاف)
+        src={resized(c.src, 160)}
         alt=""
         draggable={false}
         style={{

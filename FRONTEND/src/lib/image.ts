@@ -11,6 +11,13 @@ export const sized = (src: string, width: number) => {
   return src;
 };
 
+// تغيير عرض صورة مجهّزة مسبقًا بـ sized (مثل الأغلفة في siteData بعرض 900):
+// الصور الصغيرة على الشاشة لا تحتاج تنزيل النسخة الكبيرة
+export const resized = (src: string, width: number) =>
+  /\/upload\/f_auto,q_auto,c_limit,w_\d+\//.test(src)
+    ? src.replace(/(\/upload\/f_auto,q_auto,c_limit,)w_\d+\//, `$1w_${width}/`)
+    : sized(src, width);
+
 // فيديو Cloudinary خفيف: نفس فكرة الصور. Cloudinary يصغّر العرض (c_limit لا يكبّر الصغير)،
 // ويختار الجودة والترميز المناسبين (q_auto,vc_auto)، ويحوّل الملف إلى MP4
 // (مهم لملفات .mov من الآيفون التي لا يشغّلها كروم دائمًا). أول مشاهدة قد تتأخر قليلًا

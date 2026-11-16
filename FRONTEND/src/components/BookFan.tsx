@@ -18,6 +18,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import { resized } from "../lib/image";
 
 // كتاب ثلاثي الأبعاد بتحويلات CSS فقط (بلا WebGL ولا Three.js):
 // كل صفحة عنصر مسطح يدور حول حافته اليسرى، وكل الحواف تلتقي في محور واحد هو كعب الكتاب.
@@ -50,6 +51,10 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 // المسافة بين حافة كل صفحة ومحور الدوران (كعب الكتاب): نسبة من عرض الصفحة، فتكبر وتصغر معها.
 // كلما زادت، ابتعدت الصفحات عن بعضها في منتصف الكتاب (فراغ صغير بينها بدل أن تلتصق عند الكعب).
 // المسافة بين صفحتين متجاورتين عند الكعب ≈ هذه القيمة × زاوية ما بينهما (30° لـ 12 صفحة ≈ نصفها)
+// عرض صور الكتاب الدوّار: الصفحة لا تتجاوز 250px على الشاشة، فـ 500px تكفي للشاشات الحادة
+// (بدل 900px). نفس الرابط للوجهين الأمامي والخلفي: يُنزَّل مرة واحدة
+const FAN_WIDTH = 500;
+
 const SPINE_GAP = "calc(var(--page-w) * 0.1)";
 
 // وجه صفحة: مخفي حين يكون ظهره للكاميرا، هو وكل ما بداخله (مع بادئة -webkit- لـ Safari)
@@ -81,10 +86,12 @@ const Page = ({
 
   const front = (
     <img
-      src={item.src}
+      src={resized(item.src, FAN_WIDTH)}
       alt={item.alt}
       draggable={false}
       loading={index < 4 ? "eager" : "lazy"}
+      // أول ما يراه الزائر في الموقع: المتصفح يقدّم هاتين الصورتين على غيرهما
+      fetchPriority={index < 2 ? "high" : "auto"}
       decoding="async"
       className="h-full w-full select-none object-cover"
     />
@@ -125,7 +132,7 @@ const Page = ({
         aria-hidden="true"
         className={`${FACE} bg-neutral-300 [transform:rotateY(180deg)_translateZ(0.5px)]`}>
         <img
-          src={item.src}
+          src={resized(item.src, FAN_WIDTH)}
           alt=""
           draggable={false}
           loading="lazy"

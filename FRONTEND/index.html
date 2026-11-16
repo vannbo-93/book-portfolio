@@ -38,6 +38,13 @@
     <!-- لون شريط المتصفح على الهاتف (أسود مثل شاشة الدخول) -->
     <meta name="theme-color" content="#000000" />
 
+    <!-- الاتصال المبكر بالخادم وبـ Cloudinary: يبدأ المتصفح فتح الاتصال (DNS + TLS) مع تحميل الصفحة،
+         بدل انتظار السكربت. يوفّر مئات الأجزاء من الثانية على الهاتف قبل ظهور المحتوى والصور.
+         %VITE_API_URL% تضعه Vite وقت البناء من متغير البيئة. بلا crossorigin عمدًا: طلبات الموقع للخادم
+         تُرسل مع الكوكيز (credentials)، والمتصفح يستعمل لها اتصالًا من هذا النوع -->
+    <link rel="preconnect" href="%VITE_API_URL%" />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+
     <!-- أيقونة التبويب: ضع ملف favicon.svg في مجلد public (أو احذف السطر) -->
     <link rel="icon" type="image/png" href="/favicon.png" />
   </head>

@@ -57,6 +57,24 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
+    // الصفوف الفارغة تمامًا تُتجاهل. الصف الناقص (اسم بلا رابط أو العكس) يوقف الحفظ برسالة واضحة
+    // بدل أن يُحذف بصمت. الرابط بلا https:// يُكمَّل تلقائيًا (instagram.com/x → https://instagram.com/x)
+    const socials = s.socials
+      .map((x) => ({ label: x.label.trim(), href: x.href.trim() }))
+      .filter((x) => x.label || x.href)
+      .map((x) =>
+        x.href && !/^https?:\/\//i.test(x.href)
+          ? { ...x, href: `https://${x.href}` }
+          : x,
+      );
+    const incomplete = socials.findIndex((x) => !x.label || !x.href);
+    if (incomplete !== -1) {
+      setMessage({
+        ok: false,
+        text: `Social account ${incomplete + 1}: fill in both the name (e.g. Instagram) and the link.`,
+      });
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
@@ -64,11 +82,10 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
         "/api/admin/settings",
         {
           method: "PATCH",
-          // الحسابات الفارغة لا تُرسل
           // fanPages لا تُرسل من هنا: صفحتها مستقلة، فلا تكتب هذه الصفحة فوق تعديلاتها
           body: JSON.stringify({
             ...withoutFan(s),
-            socials: s.socials.filter((x) => x.label.trim() && x.href.trim()),
+            socials,
           }),
         },
       );
@@ -159,11 +176,15 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
 
         <section className={CARD}>
           <span className={LABEL}>Social accounts</span>
+          <span className="mt-1 block text-xs text-black/50">
+            Name on the left (e.g. Instagram), full profile link on the right.
+          </span>
           <div className="mt-3 flex flex-col gap-2">
             {s.socials.map((social, i) => (
               <div key={i} className="flex gap-2">
                 <input
-                  className={`${INPUT} mt-0 w-36 shrink-0`}
+                  className={`${INPUT} mt-0 max-w-28 shrink-0 sm:max-w-36`}
+                  aria-label="Account name"
                   placeholder="Instagram"
                   value={social.label}
                   onChange={(e) =>
@@ -176,7 +197,9 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
                   }
                 />
                 <input
-                  className={`${INPUT} mt-0`}
+                  className={`${INPUT} mt-0 min-w-0 flex-1`}
+                  aria-label="Account link"
+                  inputMode="url"
                   placeholder="https://instagram.com/…"
                   value={social.href}
                   onChange={(e) =>

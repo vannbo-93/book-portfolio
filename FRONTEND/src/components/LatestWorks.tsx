@@ -16,8 +16,10 @@ import { FORMATS, type LatestItem } from "../data/formats";
 // واقفة على خط واحد كرف مكتبة،
 // وتحت كل كتاب رقمه يسارًا واسمه يمينًا.
 // عند المرور بالماوس على غلاف:
-//   - الغلاف يكبر قليلًا، وبقية الأغلفة تُظلم إلى 45% من سطوعها، فيبرز وحده
-//     (لتغيير قوة الإظلام: الرقم في brightness-[0.45]، أصغر = أغمق)
+//   - الغلاف يكبر قليلًا، وبقية الأغلفة تُظلم قليلًا (70% من سطوعها)، فيبرز وحده
+//     (لتغيير قوة الإظلام: الرقم في brightness-[0.7]، أصغر = أغمق)
+//   - الإظلام يبدأ فقط حين يكون الماوس فوق غلاف فعلًا، لا فوق الفراغات بين الأغلفة:
+//     هكذا لا تُظلم كل الأغلفة أثناء التمرير حين يمر القسم تحت ماوس ثابت
 //   - المؤشر يختفي ويظهر مكانه النص [ VIEW ] يتبع الماوس، حتى يعرف الزائر أن عليه الضغط
 
 interface LatestWorksProps {
@@ -86,7 +88,7 @@ const LatestWorks = ({
 
       {/* الشبكة: 2 عمود على الهاتف، 3 على المتوسطة، 5 على الكبيرة.
           items-end: كل صف ملتصق من الأسفل، فتقف الكتب على خط واحد كرف مكتبة.
-          group/grid: حين يكون الماوس فوق الشبكة تُظلم كل الأغلفة إلا التي تحته */}
+          group/grid + has-[a:hover]: حين يكون الماوس فوق أحد الأغلفة تُظلم البقية قليلًا */}
       <ul
         onPointerMove={onMove}
         className="group/grid grid list-none grid-cols-2 items-end gap-x-2.5 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
@@ -102,7 +104,7 @@ const LatestWorks = ({
               {/* كل الأغلفة بعرض العمود نفسه، والارتفاع وحده حسب نسبة مقاس الكتاب:
                   الأفقي قصير، والمربع متوسط، وكتاب الجيب أطول.
                   الإظلام بـ brightness (لا opacity): الغلاف يغمق بدل أن يبهت نحو الأبيض */}
-              <div className="overflow-hidden bg-neutral-900 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.5)] transition-[filter] duration-500 [@media(hover:hover)]:group-hover/grid:brightness-[0.45] [@media(hover:hover)]:group-hover/item:!brightness-100">
+              <div className="overflow-hidden bg-neutral-900 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.5)] transition-[filter] duration-500 [@media(hover:hover)]:group-has-[a:hover]/grid:brightness-[0.7] [@media(hover:hover)]:group-hover/item:!brightness-100">
                 <img
                   src={item.src}
                   alt=""
@@ -117,7 +119,7 @@ const LatestWorks = ({
               {/* رقم يسارًا واسم يمينًا. تبهت مع الأغلفة الأخرى.
                   في الأغلفة الضيقة (كتاب الجيب) يُقص الاسم الطويل بـ "…"، والاسم كاملًا يظهر عند المرور (title) */}
               <div
-                className={`${MONO} mt-2 flex justify-between gap-2 font-medium transition-opacity duration-500 [@media(hover:hover)]:group-hover/grid:opacity-30 [@media(hover:hover)]:group-hover/item:!opacity-100`}>
+                className={`${MONO} mt-2 flex justify-between gap-2 font-medium transition-opacity duration-500 [@media(hover:hover)]:group-has-[a:hover]/grid:opacity-50 [@media(hover:hover)]:group-hover/item:!opacity-100`}>
                 <span className="shrink-0">{pad3(i + 1)}</span>
                 <span className="truncate text-right">{item.title}</span>
               </div>

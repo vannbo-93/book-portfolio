@@ -20,6 +20,7 @@ const LINKS = [
   { to: "/admin/content/experience", label: "Experience" },
   { to: "/admin/settings", label: "Settings & videos" },
   { to: "/admin/messages", label: "Messages" },
+  { to: "/admin/analytics", label: "Analytics" },
   { to: "/admin/account", label: "Account" },
 ];
 

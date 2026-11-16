@@ -1,5 +1,5 @@
 /** @format */
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Routes, Route, useLocation } from "react-router";
 import { AnimatePresence } from "motion/react";
 import Navbar from "./components/Navbar";
@@ -10,6 +10,7 @@ import PageMeta from "./components/PageMeta";
 import RevealOnScroll from "./components/RevealOnScroll";
 import PageSlide from "./components/PageSlide";
 import { PAGE_EXITED } from "./lib/scroll";
+import { trackPageView } from "./lib/track";
 import Home from "./pages/Home";
 import Works from "./pages/Works";
 import Book from "./pages/Book";
@@ -26,6 +27,11 @@ const Bounded = ({ children }: { children: ReactNode }) => (
 
 const App = () => {
   const location = useLocation();
+
+  // إحصاءات الزوار: كل صفحة تُفتح (lib/track.ts)
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   return (
     // overflow-x-clip: لا يظهر شريط تمرير أفقي والصفحة خارج الشاشة أثناء الانزلاق

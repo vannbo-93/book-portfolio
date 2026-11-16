@@ -14,6 +14,8 @@ import BooksTrash from "./pages/BooksTrash";
 import Messages from "./pages/Messages";
 import Account from "./pages/Account";
 import { MONO_SM } from "./ui";
+import Analytics from "./pages/Analytics";
+import { markAsAdmin } from "../lib/track";
 
 // لوحة التحكم (/admin): منفصلة عن الموقع (بلا شاشة الدخول ولا التمرير الناعم ولا انتقالات الصفحات)،
 // وتُحمَّل فقط حين تُفتح، فلا تُثقل الموقع على الزوار.
@@ -31,6 +33,11 @@ const AdminApp = () => {
       alive = false;
     };
   }, []);
+
+  // زيارات الأدمن للموقع من هذا المتصفح لا تُحسب في الإحصاءات
+  useEffect(() => {
+    if (admin) markAsAdmin();
+  }, [admin]);
 
   const logout = async () => {
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
@@ -58,6 +65,7 @@ const AdminApp = () => {
               <Route path="fan" element={<FanCovers />} />
               <Route path="settings" element={<Settings />} />
               <Route path="messages" element={<Messages />} />
+              <Route path="analytics" element={<Analytics />} />
               <Route path="account" element={<Account />} />
               <Route
                 path="*"

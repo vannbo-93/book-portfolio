@@ -8,7 +8,8 @@ const enabled = Boolean(
   env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS && env.NOTIFY_EMAIL,
 );
 
-const transporter = enabled
+// نفس الاتصال يُستعمل للنسخة الاحتياطية الشهرية (services/autoBackup.ts)
+export const transporter = enabled
   ? nodemailer.createTransport({
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,

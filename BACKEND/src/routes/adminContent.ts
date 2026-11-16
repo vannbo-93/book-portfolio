@@ -2,13 +2,15 @@ import { Router } from "express";
 import { create, listAll, remove, reorder, update } from "../controllers/content.js";
 import { getPublic as getSettings, update as updateSettings } from "../controllers/settings.js";
 import { requireAuth } from "../middleware/auth.js";
-import { download as downloadBackup } from "../controllers/backup.js";
+import { download as downloadBackup, emailNow as emailBackup, status as backupStatus } from "../controllers/backup.js";
 
 // للأدمن فقط: إدارة المحتوى والإعدادات
 const router = Router();
 router.use(requireAuth);
 
 router.get("/backup", downloadBackup);
+router.get("/backup/status", backupStatus);
+router.post("/backup/email", emailBackup);
 
 router.get("/settings", getSettings);
 router.patch("/settings", updateSettings);

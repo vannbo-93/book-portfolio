@@ -36,6 +36,10 @@ const schema = z.object({
   // عند إضافة كتاب أو تعديله أو حذفه يُعاد بناء الواجهة تلقائيًا، فتتحدث معاينة رابطه في WhatsApp
   // وخريطة الموقع (scripts/prerender.mjs). بدونه: يحتاج ذلك Manual Deploy يدويًا للواجهة
   SITE_DEPLOY_HOOK: z.union([z.url(), z.literal("")]).optional(),
+  // نسخة احتياطية تلقائية بالبريد (تحتاج إعدادات SMTP أعلاه): كل كم يومًا، و0 = متوقفة.
+  // تُرسل إلى BACKUP_EMAIL، وإن كان فارغًا فإلى NOTIFY_EMAIL
+  BACKUP_EVERY_DAYS: z.coerce.number().int().min(0).max(365).default(30),
+  BACKUP_EMAIL: z.union([z.email(), z.literal("")]).optional(),
 });
 
 const parsed = schema.safeParse(process.env);

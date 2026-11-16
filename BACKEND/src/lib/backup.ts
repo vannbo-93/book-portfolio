@@ -14,3 +14,11 @@ export const BACKUP_COLLECTIONS: Record<string, Model<any>> = {
 };
 
 export const BACKUP_VERSION = 1;
+
+// النسخة الاحتياطية كاملة (نفس الملف الذي يُنزَّل من لوحة التحكم ويُرسل بالبريد)
+export const buildBackup = async () => {
+  const entries = await Promise.all(
+    Object.entries(BACKUP_COLLECTIONS).map(async ([name, model]) => [name, await model.find().lean()]),
+  );
+  return { version: BACKUP_VERSION, exportedAt: new Date().toISOString(), data: Object.fromEntries(entries) };
+};

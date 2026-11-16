@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { api } from "../../lib/api";
 import { FORMATS, type FormatKey } from "../../data/formats";
+import { BOOK_CATEGORIES } from "../../data/categories";
 import { useLoad } from "../useLoad";
 import { usePendingUploads } from "../uploads";
 import { MediaField, MediaListField } from "../MediaField";
@@ -34,6 +35,7 @@ interface Form {
   cover: Media | null;
   spreads: Media[];
   status: "draft" | "published";
+  categories: string[];
 }
 
 const toForm = (b?: AdminBook): Form => ({
@@ -48,6 +50,7 @@ const toForm = (b?: AdminBook): Form => ({
   cover: b?.cover ?? null,
   spreads: b?.spreads ?? [],
   status: b?.status ?? "draft",
+  categories: b?.categories ?? [],
 });
 
 const BookForm = ({ book }: { book?: AdminBook }) => {
@@ -231,6 +234,36 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
             </div>
             <p className="mt-2 text-xs text-black/50">
               Drafts are hidden from visitors. Publishing needs a cover.
+            </p>
+          </section>
+
+          {/* التصنيفات: لفلتر صفحة Works. يمكن اختيار أكثر من تصنيف */}
+          <section className={CARD}>
+            <span className={LABEL}>Categories</span>
+            <div className="mt-3 flex flex-col gap-2">
+              {BOOK_CATEGORIES.map((c) => (
+                <label
+                  key={c.key}
+                  className="flex cursor-pointer items-center gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.categories.includes(c.key)}
+                    onChange={(e) =>
+                      set(
+                        "categories",
+                        e.target.checked
+                          ? [...form.categories, c.key]
+                          : form.categories.filter((k) => k !== c.key),
+                      )
+                    }
+                    className="size-4 accent-black"
+                  />
+                  {c.label}
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-black/50">
+              Filters on the Works page. A book can be in more than one.
             </p>
           </section>
 

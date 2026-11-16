@@ -35,6 +35,9 @@ const bookSchema = new Schema(
     spreads: { type: [imageSchema], default: [] },
     // ترتيب الظهور في الموقع: الأصغر أولًا
     order: { type: Number, default: 0, index: true },
+    // تصنيفات الكتاب (مفاتيح مثل "business"): لفلتر صفحة Works. أسماؤها المعروضة في
+    // FRONTEND/src/data/categories.ts. الكتاب يمكن أن يكون في أكثر من تصنيف
+    categories: { type: [String], default: [] },
     // draft: يراه الأدمن فقط. published: يظهر للزوار
     status: { type: String, enum: BOOK_STATUSES, default: "draft", index: true },
     // سلة المحذوفات: تاريخ نقل الكتاب إلى السلة (null = ليس في السلة).

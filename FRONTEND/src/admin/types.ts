@@ -28,6 +28,7 @@ export interface AdminBook {
   spreads: Media[];
   order: number;
   status: "draft" | "published";
+  categories?: string[];
   updatedAt: string;
   // تاريخ نقله إلى السلة (null أو غير موجود = ليس في السلة)
   deletedAt?: string | null;

@@ -22,4 +22,6 @@ export interface Book {
   location?: string;
   cover: Img;
   spreads: Img[];
+  // مفاتيح التصنيفات (data/categories.ts)
+  categories: string[];
 }

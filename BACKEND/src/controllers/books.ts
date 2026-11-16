@@ -33,6 +33,11 @@ const bookFields = {
   cover: imageInput.nullable(),
   spreads: z.array(imageInput).max(60),
   status: z.enum(BOOK_STATUSES),
+  // مفاتيح التصنيفات (حروف صغيرة وشرطات). القائمة نفسها في الواجهة، فإضافة تصنيف لا تحتاج تعديل الخادم
+  categories: z
+    .array(z.string().trim().toLowerCase().regex(/^[a-z0-9-]{1,40}$/, "Invalid category"))
+    .max(6)
+    .transform((v) => [...new Set(v)]),
 };
 
 const createSchema = z.object({
@@ -46,6 +51,7 @@ const createSchema = z.object({
   cover: bookFields.cover.default(null),
   spreads: bookFields.spreads.default([]),
   status: bookFields.status.default("draft"),
+  categories: bookFields.categories.default([]),
 });
 
 // التعديل: كل الحقول اختيارية (يُرسل ما تغيّر فقط)

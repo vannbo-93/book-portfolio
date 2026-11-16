@@ -66,6 +66,7 @@ interface ApiBook {
   location: string;
   cover: ApiMedia | null;
   spreads: ApiMedia[];
+  categories?: string[];
 }
 interface ApiContent {
   covers: {
@@ -135,6 +136,7 @@ const toBook = (b: ApiBook): Book | null =>
         location: b.location,
         cover: toImg(b.cover, 900),
         spreads: b.spreads.map((s) => toImg(s, 2000)),
+        categories: b.categories ?? [],
       }
     : null;
 

@@ -21,6 +21,8 @@ const settingsSchema = new Schema(
     availableText: { type: String, default: "Available for new projects", trim: true },
     busyText: { type: String, default: "Booked — join the waitlist", trim: true },
     socials: { type: [socialSchema], default: [] },
+    // اسم حساب إنستغرام (بلا @): زر "Message me on Instagram" تحت نموذج التواصل. فارغ = لا زر
+    instagram: { type: String, default: "", trim: true },
     // الفيديوهات: MediaExpand في الرئيسية، ولوحتا StackReveal (يسار ويمين)
     videos: {
       reel: { type: mediaSchema, default: null },

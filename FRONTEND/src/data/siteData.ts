@@ -24,6 +24,8 @@ export interface Settings {
   // النص تحت نقطة التوفر: حسب available
   availability: string;
   socials: NavItem[];
+  // اسم حساب إنستغرام لزر الرسالة المباشرة تحت نموذج التواصل ("" = لا زر)
+  instagram: string;
   // روابط الفيديوهات (فارغ = لا فيديو، يبقى المربع الأسود)
   videos: { reel?: Video; stackLeft?: Video; stackRight?: Video };
   // أغلفة الكتاب الدوّار المختارة من لوحة التحكم (فارغة = أغلفة الكتب)
@@ -101,6 +103,7 @@ interface ApiSettings {
   availableText: string;
   busyText: string;
   socials: { label: string; href: string }[];
+  instagram?: string;
   videos: Record<"reel" | "stackLeft" | "stackRight", ApiMedia | null>;
   fanPages?: ApiMedia[];
 }
@@ -209,6 +212,7 @@ export const loadSiteData = async (): Promise<SiteData> => {
       available: s.available,
       availability: s.available ? s.availableText : s.busyText,
       socials: s.socials,
+      instagram: s.instagram ?? "",
       // المربع الكبير يملأ الشاشة: 1920px (الهاتف 1080). اللوحتان نصف الشاشة: 1080px (الهاتف 720)
       videos: {
         reel: toVideo(s.videos.reel, isPhone() ? 1080 : 1920),

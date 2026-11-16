@@ -66,6 +66,7 @@ export interface SettingsDoc {
   availableText: string;
   busyText: string;
   socials: { label: string; href: string }[];
+  instagram?: string;
   videos: Record<"reel" | "stackLeft" | "stackRight", Media | null>;
   fanPages: Media[];
 }

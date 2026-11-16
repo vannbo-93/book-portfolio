@@ -9,6 +9,8 @@ import { api } from "../lib/api";
 
 // قسم التواصل: نموذج (الاسم، البريد، الموضوع، الرسالة) بخطوط سفلية فقط.
 // بعد اختيار موضوع مشروع (لا "سؤال عام") تظهر ثلاثة أسئلة اختيارية: الشكل، والطول، والموعد.
+// وتحت النموذج: زر رسالة مباشرة على إنستغرام لمن لا يحب النماذج (إن كُتب اسم الحساب في الإعدادات).
+// ملاحظة: رسائل إنستغرام لا تظهر في لوحة التحكم، تبقى في التطبيق.
 //
 // الإرسال: إلى الخادم مباشرة (POST /api/contact)، فتُحفظ الرسالة وتظهر في لوحة التحكم،
 // ويصل المصمم إشعار بالبريد إن كان مفعّلًا. الزائر لا يحتاج برنامج بريد على جهازه.
@@ -256,6 +258,21 @@ const Contact = ({ id = "contact" }: { id?: string }) => {
               </AnimatePresence>
             </div>
           </form>
+
+          {/* رسالة مباشرة: ig.me يفتح المحادثة في تطبيق إنستغرام على الهاتف (أو في الموقع على الحاسوب) */}
+          {settings.instagram && (
+            <p
+              className={`${MONO} mt-10 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-black/10 pt-6 font-medium`}>
+              <span className="text-black/50">Prefer a quick chat?</span>
+              <a
+                href={`https://ig.me/m/${encodeURIComponent(settings.instagram)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline-offset-[3px] hover:underline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-black">
+                [ Message me on Instagram ↗ ]
+              </a>
+            </p>
+          )}
         </div>
       </div>
     </section>

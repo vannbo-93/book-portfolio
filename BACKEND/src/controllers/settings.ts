@@ -19,6 +19,18 @@ const isTimezone = (tz: string) => {
 
 const video = mediaInput("video").nullable();
 
+// اسم حساب إنستغرام: يقبل "name" أو "@name" أو رابط الحساب كاملًا، ويحفظ الاسم فقط
+const instagramHandle = z
+  .string()
+  .trim()
+  .transform((v) =>
+    v
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+      .replace(/^@/, "")
+      .replace(/[/?#].*$/, ""),
+  )
+  .refine((v) => /^[A-Za-z0-9._]{0,30}$/.test(v), "Instagram username: letters, numbers, . and _ only");
+
 // كل الحقول اختيارية: يُرسل ما تغيّر فقط
 const updateSchema = z
   .object({
@@ -31,6 +43,7 @@ const updateSchema = z
     availableText: z.string().trim().max(100),
     busyText: z.string().trim().max(100),
     socials: z.array(z.object({ label: z.string().trim().min(1).max(40), href: z.url() })).max(12),
+    instagram: instagramHandle,
     videos: z.object({ reel: video, stackLeft: video, stackRight: video }).partial(),
     fanPages: z.array(mediaInput("image")).max(12, "The 3D book takes 12 covers at most"),
   })

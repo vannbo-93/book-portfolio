@@ -90,7 +90,8 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
       | "city"
       | "timezone"
       | "availableText"
-      | "busyText",
+      | "busyText"
+      | "instagram",
     label: string,
     hint?: string,
   ) => (
@@ -98,7 +99,7 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
       <span className={LABEL}>{label}</span>
       <input
         className={INPUT}
-        value={s[key]}
+        value={s[key] ?? ""}
         onChange={(e) => set(key, e.target.value)}
       />
       {hint && <span className="mt-1 block text-xs text-black/50">{hint}</span>}
@@ -126,6 +127,11 @@ const SettingsForm = ({ initial }: { initial: SettingsDoc }) => {
             "e.g. Based in — Kenitra, Morocco",
           )}
           {text("city", "City (beside the clock)", "e.g. Kenitra, Morocco")}
+          {text(
+            "instagram",
+            "Instagram username",
+            "Shows a “Message me on Instagram” button under the contact form. Without @. Empty = no button.",
+          )}
           {text(
             "timezone",
             "Time zone",

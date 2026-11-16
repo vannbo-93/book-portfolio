@@ -20,6 +20,35 @@ export const uploadFiles = async (files: File[], folder: UploadFolder) => {
   return media;
 };
 
+// ترتيب أسماء الملفات كما يرتبها الإنسان: 2.jpg قبل 10.jpg (لا 10 قبل 2 كترتيب الحروف)
+export const byFileName = (a: File, b: File) =>
+  a.name.localeCompare(b.name, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+
+// رفع عدد كبير من الملفات على دفعات صغيرة (الخادم يقبل 20 ملفًا على الأكثر في الطلب الواحد،
+// والدفعات الأصغر أسرع وأقل عرضة للانقطاع). ترتيب النتيجة نفس ترتيب الملفات.
+// إن فشلت دفعة: يتوقف ويُرجع ما نجح قبلها مع الخطأ، فلا تضيع الصور التي رُفعت
+export const uploadInBatches = async (
+  files: File[],
+  folder: UploadFolder,
+  onProgress?: (done: number, total: number) => void,
+  batchSize = 8,
+) => {
+  const media: Media[] = [];
+  onProgress?.(0, files.length);
+  for (let i = 0; i < files.length; i += batchSize) {
+    try {
+      media.push(...(await uploadFiles(files.slice(i, i + batchSize), folder)));
+    } catch (error) {
+      return { media, error };
+    }
+    onProgress?.(Math.min(i + batchSize, files.length), files.length);
+  }
+  return { media, error: null };
+};
+
 const discard = (m: Media) =>
   api("/api/uploads", {
     method: "DELETE",

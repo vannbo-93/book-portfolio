@@ -2,7 +2,12 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { Reorder } from "motion/react";
 import { sized } from "../lib/image";
-import { uploadFiles, type PendingUploads, type UploadFolder } from "./uploads";
+import {
+  byFileName,
+  uploadInBatches,
+  type PendingUploads,
+  type UploadFolder,
+} from "./uploads";
 import { BUTTON_GHOST, INPUT, LABEL, MONO_SM, errorText } from "./ui";
 import type { Media } from "./types";
 
@@ -16,6 +21,9 @@ interface UploadButtonProps {
   folder: UploadFolder;
   kind: "image" | "video";
   multiple?: boolean;
+  // أقصى عدد يمكن إضافته الآن (مثلًا 60 ناقص الموجود): الزائد لا يُرفع أصلًا
+  limit?: number;
+  disabled?: boolean;
   pending: PendingUploads;
   onUploaded: (media: Media[]) => void;
 }
@@ -25,29 +33,46 @@ const UploadButton = ({
   folder,
   kind,
   multiple,
+  limit,
+  disabled,
   pending,
   onUploaded,
 }: UploadButtonProps) => {
   const input = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
+  // التقدم أثناء الرفع: [تم، المجموع]، أو null = لا رفع الآن
+  const [progress, setProgress] = useState<[number, number] | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
+  // يمكن اختيار مجلد كامل (Ctrl+A في نافذة الاختيار): يُرتَّب حسب الأسماء ويُرفع على دفعات
   const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
+    const chosen = Array.from(e.target.files ?? []).sort(byFileName);
     e.target.value = ""; // حتى يمكن اختيار نفس الملف مرة أخرى
-    if (!files.length) return;
-    setBusy(true);
+    if (!chosen.length) return;
+    const files = limit !== undefined ? chosen.slice(0, limit) : chosen;
     setError("");
-    try {
-      const media = await uploadFiles(files, folder);
+    setNotice(
+      files.length < chosen.length
+        ? `Only the first ${files.length} of ${chosen.length} were added (limit reached).`
+        : "",
+    );
+    if (!files.length) return;
+    const { media, error } = await uploadInBatches(
+      files,
+      folder,
+      (done, total) => setProgress([done, total]),
+    );
+    setProgress(null);
+    if (media.length) {
       pending.track(media);
       onUploaded(media.map((m) => ({ ...m, alt: "" })));
-    } catch (err) {
-      setError(errorText(err));
-    } finally {
-      setBusy(false);
     }
+    if (error)
+      setError(
+        `${errorText(error)}${media.length ? ` — ${media.length} of ${files.length} uploaded, try the rest again` : ""}`,
+      );
   };
+  const busy = progress !== null;
 
   return (
     <div>
@@ -61,11 +86,16 @@ const UploadButton = ({
       />
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || disabled}
         onClick={() => input.current?.click()}
         className={BUTTON_GHOST}>
-        {busy ? "Uploading…" : label}
+        {progress
+          ? progress[1] > 1
+            ? `Uploading ${progress[0]} / ${progress[1]}…`
+            : "Uploading…"
+          : label}
       </button>
+      {notice && <p className="mt-2 text-xs text-amber-700">{notice}</p>}
       {error && <p className={`${MONO_SM} mt-2 text-red-700`}>{error}</p>}
     </div>
   );
@@ -210,6 +240,10 @@ export const MediaListField = ({
         {label} {max !== undefined && `(${value.length}/${max})`}
       </span>
       {hint && <p className="mt-1 text-xs text-black/50">{hint}</p>}
+      <p className="mt-1 text-xs text-black/50">
+        Tip: select the whole folder at once (Ctrl+A). Images are added in
+        file-name order (01, 02 … 10).
+      </p>
       {value.length > 0 && (
         <Reorder.Group
           axis="y"
@@ -260,18 +294,17 @@ export const MediaListField = ({
         </Reorder.Group>
       )}
       <div className="mt-3">
-        {!full && (
-          <UploadButton
-            label="Add images"
-            folder={folder}
-            kind="image"
-            multiple
-            pending={pending}
-            onUploaded={(media) =>
-              onChange([...value, ...media].slice(0, max ?? Infinity))
-            }
-          />
-        )}
+        {/* يبقى ظاهرًا حتى عند الامتلاء (معطّلًا)، فتبقى رسالته ظاهرة إن لم تُضف كل الصور */}
+        <UploadButton
+          label={full ? `Limit reached (${max})` : "Add images"}
+          disabled={full}
+          folder={folder}
+          kind="image"
+          multiple
+          limit={max !== undefined ? max - value.length : undefined}
+          pending={pending}
+          onUploaded={(media) => onChange([...value, ...media])}
+        />
       </div>
     </div>
   );

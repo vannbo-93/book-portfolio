@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { api } from "../../lib/api";
 import { FORMATS, type FormatKey } from "../../data/formats";
 import { BOOK_CATEGORIES } from "../../data/categories";
+import { slugFinal, slugTyping } from "../slug";
 import { useLoad } from "../useLoad";
 import { usePendingUploads } from "../uploads";
 import { MediaField, MediaListField } from "../MediaField";
@@ -77,7 +78,7 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
       ...form,
       year: Number(form.year),
       // slug فارغ عند الإنشاء: الخادم يصنعه من العنوان
-      slug: form.slug.trim() || undefined,
+      slug: slugFinal(form.slug) || undefined,
     };
     try {
       const { book: saved } = await api<{ book: AdminBook }>(
@@ -125,7 +126,9 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
       <input
         className={INPUT}
         value={form[key]}
-        onChange={(e) => set(key, e.target.value)}
+        onChange={(e) =>
+          set(key, key === "slug" ? slugTyping(e.target.value) : e.target.value)
+        }
       />
       {hint && <span className="mt-1 block text-xs text-black/50">{hint}</span>}
     </label>

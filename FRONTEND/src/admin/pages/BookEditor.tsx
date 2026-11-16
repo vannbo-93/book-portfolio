@@ -210,6 +210,7 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
               folder="books"
               pending={pending}
               max={60}
+              minWidth={1600}
             />
           </section>
         </div>
@@ -240,6 +241,7 @@ const BookForm = ({ book }: { book?: AdminBook }) => {
               onChange={(v) => set("cover", v)}
               folder="books"
               pending={pending}
+              minWidth={1200}
             />
           </section>
 

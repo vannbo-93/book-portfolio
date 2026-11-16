@@ -15,6 +15,8 @@ export interface Media {
   height: number;
   format: string;
   bytes: number;
+  // صورة بألوان الطباعة (CMYK): يُرسل للوحة التحكم لتعرض تحذيرًا. لا يُحفظ في قاعدة البيانات
+  cmyk?: boolean;
 }
 
 // رفع ملف من الذاكرة إلى Cloudinary

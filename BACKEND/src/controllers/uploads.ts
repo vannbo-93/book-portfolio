@@ -4,6 +4,7 @@ import type { RequestHandler } from "express";
 import { z } from "zod";
 import { AppError } from "../middleware/error.js";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES } from "../middleware/upload.js";
+import { isCmykJpeg } from "../lib/imageInfo.js";
 import {
   deleteMedia,
   isOwnMedia,
@@ -43,15 +44,18 @@ export const uploadFiles: RequestHandler = async (req, res) => {
       `Image too large (max 10MB): ${tooBig.originalname}`,
     );
 
-  // رفع متوازٍ: أسرع من ملف تلو الآخر
+  // رفع متوازٍ: أسرع من ملف تلو الآخر.
+  // ومع كل صورة: هل هي CMYK؟ (للتحذير في لوحة التحكم فقط، الرفع لا يُمنع)
   const media = await Promise.all(
-    files.map((f) =>
-      uploadBuffer(
+    files.map(async (f) => {
+      const isImage = IMAGE_TYPES.includes(f.mimetype);
+      const m = await uploadBuffer(
         f.buffer,
-        (IMAGE_TYPES.includes(f.mimetype) ? "image" : "video") as ResourceType,
+        (isImage ? "image" : "video") as ResourceType,
         folder,
-      ),
-    ),
+      );
+      return isImage && isCmykJpeg(f.buffer) ? { ...m, cmyk: true } : m;
+    }),
   );
   res.status(201).json({ media });
 };

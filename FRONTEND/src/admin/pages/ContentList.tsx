@@ -99,6 +99,7 @@ const ItemEditor = ({
             onChange={(v) => set(f.name, v)}
             folder={type.folder}
             pending={pending}
+            minWidth={f.minWidth}
           />
         );
       case "images":
@@ -112,6 +113,7 @@ const ItemEditor = ({
             folder={type.folder}
             pending={pending}
             max={f.max}
+            minWidth={f.minWidth}
           />
         );
       case "checkbox":

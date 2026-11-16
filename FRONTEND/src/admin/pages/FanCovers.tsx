@@ -61,6 +61,7 @@ const FanForm = ({ initial }: { initial: Media[] }) => {
             folder="covers"
             pending={pending}
             max={MAX}
+            minWidth={800}
           />
         </section>
         <div className="flex items-center gap-4">

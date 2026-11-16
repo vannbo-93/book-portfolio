@@ -10,6 +10,8 @@ export interface Media {
   width: number;
   height: number;
   alt?: string;
+  // يأتي من الرفع فقط (لا يُحفظ): الصورة بألوان الطباعة CMYK
+  cmyk?: boolean;
 }
 
 export interface AdminBook {

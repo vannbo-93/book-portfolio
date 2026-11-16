@@ -71,6 +71,36 @@ const UploadButton = ({
   );
 };
 
+// تحذيرات تحت الصورة المرفوعة: صغيرة فستبدو ضبابية، أو بألوان الطباعة (CMYK).
+// لا تمنع الحفظ: القرار للمصممة (أحيانًا لا توجد نسخة أكبر من صورة قديمة)
+const imageWarnings = (m: Media, minWidth?: number) => {
+  if (m.resourceType === "video") return [];
+  const out: string[] = [];
+  if (minWidth && m.width < minWidth)
+    out.push(
+      `Only ${m.width}px wide: may look blurry on the site. Upload at least ${minWidth}px wide.`,
+    );
+  if (m.cmyk)
+    out.push(
+      "CMYK (print colors): colors may look dull or wrong online. Export it as RGB (sRGB) and upload again.",
+    );
+  return out;
+};
+
+const Warnings = ({ media, minWidth }: { media: Media; minWidth?: number }) => {
+  const list = imageWarnings(media, minWidth);
+  if (!list.length) return null;
+  return (
+    <ul className="mt-2 flex list-none flex-col gap-1">
+      {list.map((w) => (
+        <li key={w} className="text-xs text-amber-700">
+          ⚠ {w}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
 const Preview = ({ media, className }: { media: Media; className: string }) =>
   media.resourceType === "video" ? (
     <video src={media.url} muted playsInline controls className={className} />
@@ -87,6 +117,8 @@ interface MediaFieldProps {
   pending: PendingUploads;
   kind?: "image" | "video";
   hint?: string;
+  // أقل عرض مقبول (بكسل) قبل أن يظهر تحذير "قد تبدو ضبابية"
+  minWidth?: number;
 }
 
 export const MediaField = ({
@@ -97,6 +129,7 @@ export const MediaField = ({
   pending,
   kind = "image",
   hint,
+  minWidth,
 }: MediaFieldProps) => (
   <div>
     <span className={LABEL}>{label}</span>
@@ -132,6 +165,7 @@ export const MediaField = ({
         )}
       </div>
     </div>
+    {value && <Warnings media={value} minWidth={minWidth} />}
     {value && kind === "image" && (
       <label className="mt-3 block max-w-md">
         <span className={LABEL}>Image description (alt)</span>
@@ -155,6 +189,8 @@ interface MediaListFieldProps {
   pending: PendingUploads;
   max?: number;
   hint?: string;
+  // أقل عرض مقبول (بكسل) قبل أن يظهر تحذير "قد تبدو ضبابية"
+  minWidth?: number;
 }
 
 export const MediaListField = ({
@@ -165,6 +201,7 @@ export const MediaListField = ({
   pending,
   max,
   hint,
+  minWidth,
 }: MediaListFieldProps) => {
   const full = max !== undefined && value.length >= max;
   return (
@@ -195,19 +232,22 @@ export const MediaListField = ({
                 draggable={false}
                 className="h-16 w-24 shrink-0 rounded-[3px] bg-neutral-100 object-cover"
               />
-              <input
-                className={`${INPUT} mt-0`}
-                value={m.alt ?? ""}
-                placeholder={`Description of image ${i + 1} (alt)`}
-                onPointerDown={(e) => e.stopPropagation()}
-                onChange={(e) =>
-                  onChange(
-                    value.map((x) =>
-                      x === m ? { ...x, alt: e.target.value } : x,
-                    ),
-                  )
-                }
-              />
+              <div className="min-w-0 flex-1">
+                <input
+                  className={`${INPUT} mt-0`}
+                  value={m.alt ?? ""}
+                  placeholder={`Description of image ${i + 1} (alt)`}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onChange={(e) =>
+                    onChange(
+                      value.map((x) =>
+                        x === m ? { ...x, alt: e.target.value } : x,
+                      ),
+                    )
+                  }
+                />
+                <Warnings media={m} minWidth={minWidth} />
+              </div>
               <button
                 type="button"
                 aria-label={`Remove image ${i + 1}`}

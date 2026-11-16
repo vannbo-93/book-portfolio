@@ -37,8 +37,17 @@ export type Field =
       kind: "image";
       required?: boolean;
       hint?: string;
+      // أقل عرض (بكسل) قبل تحذير "قد تبدو ضبابية"
+      minWidth?: number;
     }
-  | { name: string; label: string; kind: "images"; max: number; hint?: string };
+  | {
+      name: string;
+      label: string;
+      kind: "images";
+      max: number;
+      hint?: string;
+      minWidth?: number;
+    };
 
 export interface ContentType {
   title: string;
@@ -62,7 +71,13 @@ export const CONTENT_TYPES: Record<string, ContentType> = {
     note: "The moving strip of covers (home and contact pages), the intro screen and the About page. If empty, the books' covers are used.",
     folder: "covers",
     fields: [
-      { name: "image", label: "Cover image", kind: "image", required: true },
+      {
+        name: "image",
+        label: "Cover image",
+        kind: "image",
+        required: true,
+        minWidth: 1200,
+      },
       { name: "title", label: "Title", kind: "text" },
       {
         name: "format",
@@ -140,6 +155,7 @@ export const CONTENT_TYPES: Record<string, ContentType> = {
         kind: "images",
         max: 4,
         hint: "4 images. The third is shown wider.",
+        minWidth: 1000,
       },
     ],
     summary: (i) => String(i.title),

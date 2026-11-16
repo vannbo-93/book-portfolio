@@ -25,10 +25,13 @@ const instagramHandle = z
   .trim()
   .transform((v) =>
     v
-      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+      // الرابط بكل أشكاله: مع https:// أو بدونه، مع www. أو m. أو بدونهما
+      .replace(/^(https?:\/\/)?((www|m)\.)?instagram\.com\//i, "")
       .replace(/^@/, "")
       .replace(/[/?#].*$/, ""),
   )
+  // "instagram.com" وحده (رابط ناقص) ليس اسم مستخدم
+  .refine((v) => !/^(www\.)?instagram\.com$/i.test(v), "Instagram: enter the username only, e.g. ussain_isawi")
   .refine((v) => /^[A-Za-z0-9._]{0,30}$/.test(v), "Instagram username: letters, numbers, . and _ only");
 
 // كل الحقول اختيارية: يُرسل ما تغيّر فقط
